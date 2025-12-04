@@ -1,110 +1,183 @@
-// routes/auth.js
 const express = require('express');
 const router = express.Router();
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const User = require('../models/User');
-const LoginLog = require('../models/loginlog');
-const { signToken } = require('../utils/jwt');
-const { requireRole } = require('../middleware/jwtAuth');
+const { auth } = require('../middleware/auth');
 
-// helpers for allowed domain
-function getAllowedDomainsFromEnv() {
-  const csv = process.env.ALLOWED_EMAIL_DOMAINS;
-  if (csv && csv.trim()) return csv.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
-  const single = process.env.ALLOWED_EMAIL_DOMAIN;
-  return single ? [single.trim().toLowerCase()] : [];
-}
-function isAllowedEmail(email) {
-  if (!email || typeof email !== 'string') return false;
-  const addr = email.trim().toLowerCase();
-  const allowed = getAllowedDomainsFromEnv();
-  if (!allowed.length) return true; // dev
-  return allowed.some(domain => addr.endsWith(`@${domain}`));
-}
+// Helper to generate token
+const generateToken = (user) => {
+    return jwt.sign(
+        { id: user._id, role: user.role, name: user.name },
+        process.env.JWT_SECRET,
+        { expiresIn: '1d' }
+    );
+};
 
-// register
+// @route   POST /api/auth/register
+// @desc    Register a new user
+// @access  Public
 router.post('/register', async (req, res) => {
-  try {
-    const { name, email, password, role } = req.body;
-    const adminSecret = req.body.adminSecret || req.header('x-admin-secret');
+    try {
+        const { name, email, password } = req.body;
 
-    if (!name || !email || !password) return res.status(400).json({ message: 'name, email and password required' });
+        // Validation
+        if (!name || !email || !password) {
+            return res.status(400).json({ message: 'Please enter all fields' });
+        }
 
-    if (!isAllowedEmail(email)) return res.status(403).json({ message: 'Registration restricted to college email addresses' });
+        const lowerEmail = email.toLowerCase();
 
-    let finalRole = (role && typeof role === 'string') ? role.toUpperCase() : 'USER';
-    if (finalRole === 'ADMIN') {
-      if (!process.env.ADMIN_SECRET) return res.status(500).json({ message: 'Admin registration not enabled' });
-      if (!adminSecret || adminSecret !== process.env.ADMIN_SECRET) return res.status(403).json({ message: 'Admin registration requires correct adminSecret' });
+        // Domain Check
+        if (!lowerEmail.endsWith('@atriauniversity.edu.in')) {
+            return res.status(400).json({ message: 'Registration restricted to @atriauniversity.edu.in emails' });
+        }
+
+        // Check existing user
+        const existingUser = await User.findOne({ email: lowerEmail });
+        if (existingUser) {
+            return res.status(400).json({ message: 'User already exists' });
+        }
+
+        // Create User
+        const newUser = new User({
+            name,
+            email: lowerEmail,
+            password,
+            role: 'user'
+        });
+
+        await newUser.save();
+
+        const token = generateToken(newUser);
+
+        res.json({
+            token,
+            user: {
+                id: newUser._id,
+                name: newUser.name,
+                email: newUser.email,
+                role: newUser.role
+            }
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Server error' });
     }
-
-    const exists = await User.findOne({ email: email.toLowerCase() });
-    if (exists) return res.status(409).json({ message: 'Email already registered' });
-
-    const user = new User({ name, email: email.toLowerCase(), role: finalRole });
-    await user.setPassword(password);
-    await user.save();
-
-    const token = signToken(user);
-    return res.status(201).json({ message: 'Registered', data: { user: user.toJSON(), token } });
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ message: 'Server error' });
-  }
 });
 
-// login
+// @route   POST /api/auth/login
+// @desc    Login user
+// @access  Public
 router.post('/login', async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    if (!email || !password) return res.status(400).json({ message: 'email & password required' });
+    try {
+        const { email, password } = req.body;
 
-    if (!isAllowedEmail(email)) return res.status(403).json({ message: 'Login restricted to college email addresses' });
+        // Validation
+        if (!email || !password) {
+            return res.status(400).json({ message: 'Please enter all fields' });
+        }
 
-    const user = await User.findOne({ email: email.toLowerCase() });
-    if (!user) {
-      await LoginLog.create({ email, success: false, ip: req.ip, userAgent: req.headers['user-agent'] });
-      return res.status(401).json({ message: 'Invalid credentials' });
+        const lowerEmail = email.toLowerCase();
+
+        // --- HARDCODED ADMIN CHECK ---
+        if (lowerEmail === 'admin@atriauniversity.edu.in' && password === 'iotlab') {
+            let adminUser = await User.findOne({ email: lowerEmail });
+
+            if (!adminUser) {
+                // Create admin if not exists
+                adminUser = new User({
+                    name: 'Administrator',
+                    email: lowerEmail,
+                    password: password, // Will be hashed by pre-save hook
+                    role: 'admin'
+                });
+                await adminUser.save();
+            } else {
+                // Ensure role is admin
+                if (adminUser.role !== 'admin') {
+                    adminUser.role = 'admin';
+                    await adminUser.save();
+                }
+            }
+
+            const token = generateToken(adminUser);
+            return res.json({
+                token,
+                user: {
+                    id: adminUser._id,
+                    name: adminUser.name,
+                    email: adminUser.email,
+                    role: adminUser.role
+                }
+            });
+        }
+        // -----------------------------
+
+        // Domain Check
+        if (!lowerEmail.endsWith('@atriauniversity.edu.in')) {
+            return res.status(400).json({ message: 'Login restricted to @atriauniversity.edu.in emails' });
+        }
+
+        // Check User
+        const user = await User.findOne({ email: lowerEmail });
+        if (!user) {
+            return res.status(400).json({ message: 'Invalid credentials' });
+        }
+
+        // Check Password
+        const isMatch = await user.comparePassword(password);
+        if (!isMatch) {
+            return res.status(400).json({ message: 'Invalid credentials' });
+        }
+
+        const token = generateToken(user);
+
+        res.json({
+            token,
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role
+            }
+        });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Server error' });
     }
-
-    const ok = await user.comparePassword(password);
-    if (!ok) {
-      await LoginLog.create({ userId: user._id, email: user.email, role: user.role, success: false, ip: req.ip, userAgent: req.headers['user-agent'] });
-      return res.status(401).json({ message: 'Invalid credentials' });
-    }
-
-    await LoginLog.create({ userId: user._id, email: user.email, role: user.role, success: true, ip: req.ip, userAgent: req.headers['user-agent'] });
-
-    const token = signToken(user);
-    return res.json({ message: 'Logged in', data: { user: user.toJSON(), token } });
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ message: 'Server error' });
-  }
 });
 
-// delete user (admin only)
-router.delete('/delete-user', requireRole('ADMIN'), async (req, res) => {
-  try {
-    const { email, id, purgeLogs } = req.body;
-    if (!email && !id) return res.status(400).json({ message: 'Provide email or id' });
+// @route   POST /api/auth/change-password
+// @desc    Change password
+// @access  Private
+router.post('/change-password', auth, async (req, res) => {
+    try {
+        const { currentPassword, newPassword } = req.body;
 
-    const query = id ? { _id: id } : { email: (email||'').toLowerCase() };
-    const user = await User.findOne(query);
-    if (!user) return res.status(404).json({ message: 'User not found' });
+        if (!currentPassword || !newPassword) {
+            return res.status(400).json({ message: 'Please provide current and new password' });
+        }
 
-    if (user.role === 'ADMIN') {
-      const adminCount = await User.countDocuments({ role: 'ADMIN' });
-      if (adminCount <= 1) return res.status(400).json({ message: 'Cannot delete the last admin account' });
+        const user = await User.findById(req.user.id);
+        if (!user) return res.status(404).json({ message: 'User not found' });
+
+        const isMatch = await user.comparePassword(currentPassword);
+        if (!isMatch) {
+            return res.status(400).json({ message: 'Incorrect current password' });
+        }
+
+        // Update password (pre-save hook will hash it)
+        user.password = newPassword;
+        await user.save();
+
+        res.json({ message: 'Password updated successfully' });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Server error' });
     }
-
-    const deleted = await User.findByIdAndDelete(user._id);
-    if (purgeLogs) await LoginLog.deleteMany({ $or: [{ userId: user._id }, { email: user.email }] });
-
-    return res.json({ message: 'User deleted', deleted: deleted ? deleted.toJSON() : null });
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ message: 'Server error' });
-  }
 });
 
 module.exports = router;
