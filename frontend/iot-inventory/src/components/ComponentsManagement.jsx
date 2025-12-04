@@ -3,15 +3,13 @@ import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Badge } from './ui/badge';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './ui/dialog';
 import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Plus, Search, Edit, Trash2, ExternalLink, Filter, LayoutGrid, List } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
-
-
 export function ComponentsManagement() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -21,11 +19,11 @@ export function ComponentsManagement() {
     // Load view mode from localStorage on initial render
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('adminComponentViewMode');
-      return (saved === 'list' || saved === 'cards') ? saved : 'cards';
+      return saved === 'list' || saved === 'cards' ? saved : 'cards';
     }
     return 'cards';
   });
-  
+
   // Persist view mode to localStorage whenever it changes
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -40,133 +38,115 @@ export function ComponentsManagement() {
   const [formTags, setFormTags] = useState([]);
   const [newTag, setNewTag] = useState('');
   const [showNewTagInput, setShowNewTagInput] = useState(false);
-
-  const components = [
-    {
-      id,
-      name Uno R3',
-      category,
-      quantity,
-      available,
-      threshold,
-      description: 'ATmega328P-based microcontroller board with 14 digital I/O pins',
-      datasheet: 'https://docs.arduino.cc/hardware/uno-rev3',
-      purchaseDate: '2024-01-15',
-      condition,
-      tags, 'IoT', 'automation', 'beginner'],
-    },
-    {
-      id,
-      name Pi 4 Model B (4GB)',
-      category Board Computer',
-      quantity,
-      available,
-      threshold,
-      description: 'Quad-core ARM Cortex-A72 processor with 4GB RAM',
-      datasheet: 'https://datasheets.raspberrypi.com/rpi4/raspberry-pi-4-datasheet.pdf',
-      purchaseDate: '2024-02-20',
-      condition,
-      tags, 'IoT', 'robot', 'advanced'],
-    },
-    {
-      id,
-      name DevKit V1',
-      category,
-      quantity,
-      available,
-      threshold,
-      description: 'Dual-core WiFi and Bluetooth microcontroller',
-      datasheet: 'https://www.espressif.com/sites/default/files/documentation/esp32_datasheet_en.pdf',
-      purchaseDate: '2024-03-10',
-      condition,
-      tags, 'wireless', 'automation'],
-    },
-    {
-      id,
-      name Sensor TFMini Plus',
-      category,
-      quantity,
-      available,
-      threshold,
-      description LiDAR sensor with 12m range',
-      datasheet: 'https://www.benewake.com/en/tfmini-plus.html',
-      purchaseDate: '2024-01-25',
-      condition,
-      tags, 'robot', 'navigation'],
-    },
-    {
-      id,
-      name Module OV7670',
-      category,
-      quantity,
-      available,
-      threshold,
-      description camera module with 640x480 resolution',
-      datasheet: 'https://www.ovt.com/sensors/OV7670',
-      purchaseDate: '2024-02-05',
-      condition,
-      tags, 'robot', 'AI', 'vision'],
-    },
-    {
-      id,
-      name Motor 2212 920KV',
-      category,
-      quantity,
-      available,
-      threshold,
-      description: 'High-efficiency brushless motor for drones',
-      datasheet: 'https://example.com/motor-2212',
-      purchaseDate: '2024-03-15',
-      condition,
-      tags, 'flight'],
-    },
-    {
-      id,
-      name MPU6050',
-      category,
-      quantity,
-      available,
-      threshold,
-      description: '6-axis gyroscope and accelerometer',
-      datasheet: 'https://invensense.tdk.com/products/motion-tracking/6-axis/mpu-6050/',
-      purchaseDate: '2024-01-30',
-      condition,
-      tags, 'robot', 'navigation', 'stabilization'],
-    },
-    {
-      id,
-      name Module NEO-6M',
-      category,
-      quantity,
-      available,
-      threshold,
-      description: 'U-blox NEO-6M GPS receiver module',
-      datasheet: 'https://www.u-blox.com/en/product/neo-6-series',
-      purchaseDate: '2024-02-12',
-      condition,
-      tags, 'robot', 'navigation', 'outdoor'],
-    },
-  ];
-
+  const components = [{
+    id: '1',
+    name: 'Arduino Uno R3',
+    category: 'Microcontroller',
+    quantity: 25,
+    available: 18,
+    threshold: 10,
+    description: 'ATmega328P-based microcontroller board with 14 digital I/O pins',
+    datasheet: 'https://docs.arduino.cc/hardware/uno-rev3',
+    purchaseDate: '2024-01-15',
+    condition: 'Excellent',
+    tags: ['robot', 'IoT', 'automation', 'beginner']
+  }, {
+    id: '2',
+    name: 'Raspberry Pi 4 Model B (4GB)',
+    category: 'Single Board Computer',
+    quantity: 15,
+    available: 12,
+    threshold: 8,
+    description: 'Quad-core ARM Cortex-A72 processor with 4GB RAM',
+    datasheet: 'https://datasheets.raspberrypi.com/rpi4/raspberry-pi-4-datasheet.pdf',
+    purchaseDate: '2024-02-20',
+    condition: 'Excellent',
+    tags: ['AI', 'IoT', 'robot', 'advanced']
+  }, {
+    id: '3',
+    name: 'ESP32 DevKit V1',
+    category: 'Microcontroller',
+    quantity: 30,
+    available: 22,
+    threshold: 15,
+    description: 'Dual-core WiFi and Bluetooth microcontroller',
+    datasheet: 'https://www.espressif.com/sites/default/files/documentation/esp32_datasheet_en.pdf',
+    purchaseDate: '2024-03-10',
+    condition: 'Excellent',
+    tags: ['IoT', 'wireless', 'automation']
+  }, {
+    id: '4',
+    name: 'LIDAR Sensor TFMini Plus',
+    category: 'Sensor',
+    quantity: 8,
+    available: 5,
+    threshold: 5,
+    description: 'ToF LiDAR sensor with 12m range',
+    datasheet: 'https://www.benewake.com/en/tfmini-plus.html',
+    purchaseDate: '2024-01-25',
+    condition: 'Good',
+    tags: ['drone', 'robot', 'navigation']
+  }, {
+    id: '5',
+    name: 'Camera Module OV7670',
+    category: 'Sensor',
+    quantity: 12,
+    available: 9,
+    threshold: 8,
+    description: 'VGA camera module with 640x480 resolution',
+    datasheet: 'https://www.ovt.com/sensors/OV7670',
+    purchaseDate: '2024-02-05',
+    condition: 'Good',
+    tags: ['drone', 'robot', 'AI', 'vision']
+  }, {
+    id: '6',
+    name: 'Brushless Motor 2212 920KV',
+    category: 'Actuator',
+    quantity: 16,
+    available: 12,
+    threshold: 10,
+    description: 'High-efficiency brushless motor for drones',
+    datasheet: 'https://example.com/motor-2212',
+    purchaseDate: '2024-03-15',
+    condition: 'Excellent',
+    tags: ['drone', 'flight']
+  }, {
+    id: '7',
+    name: 'IMU MPU6050',
+    category: 'Sensor',
+    quantity: 20,
+    available: 14,
+    threshold: 12,
+    description: '6-axis gyroscope and accelerometer',
+    datasheet: 'https://invensense.tdk.com/products/motion-tracking/6-axis/mpu-6050/',
+    purchaseDate: '2024-01-30',
+    condition: 'Excellent',
+    tags: ['drone', 'robot', 'navigation', 'stabilization']
+  }, {
+    id: '8',
+    name: 'GPS Module NEO-6M',
+    category: 'Sensor',
+    quantity: 10,
+    available: 6,
+    threshold: 8,
+    description: 'U-blox NEO-6M GPS receiver module',
+    datasheet: 'https://www.u-blox.com/en/product/neo-6-series',
+    purchaseDate: '2024-02-12',
+    condition: 'Good',
+    tags: ['drone', 'robot', 'navigation', 'outdoor']
+  }];
   const categories = ['all', ...Array.from(new Set(components.map(c => c.category)))];
   const categoryOptions = Array.from(new Set(components.map(c => c.category)));
   const allTags = Array.from(new Set(components.flatMap(c => c.tags)));
-
   const filteredComponents = components.filter(component => {
-    const matchesSearch = component.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         component.description.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = component.name.toLowerCase().includes(searchQuery.toLowerCase()) || component.description.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = selectedCategory === 'all' || component.category === selectedCategory;
     const matchesTags = selectedTags.length === 0 || selectedTags.every(tag => component.tags.includes(tag));
-    
     return matchesSearch && matchesCategory && matchesTags;
   });
-
-  const toggleTag = (tag) => {
-    setSelectedTags(prev =>
-      prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
-    );
+  const toggleTag = tag => {
+    setSelectedTags(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]);
   };
-
   const resetForm = () => {
     setFormCategory('');
     setFormTags([]);
@@ -175,16 +155,13 @@ export function ComponentsManagement() {
     setShowNewCategoryInput(false);
     setShowNewTagInput(false);
   };
-
-  const handleDialogChange = (open) => {
+  const handleDialogChange = open => {
     setIsAddDialogOpen(open);
     if (!open) {
       resetForm();
     }
   };
-
-  return (
-    <div className="p-6">
+  return <div className="p-6">
       <div className="mb-6">
         <div className="flex items-center justify-between mb-4">
           <div>
@@ -209,65 +186,38 @@ export function ComponentsManagement() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="grid gap-2">
                     <Label htmlFor="category">Category</Label>
-                    {!showNewCategoryInput ? (
-                      <div className="space-y-2">
+                    {!showNewCategoryInput ? <div className="space-y-2">
                         <Select value={formCategory} onValueChange={setFormCategory}>
                           <SelectTrigger id="category">
                             <SelectValue placeholder="Select category" />
                           </SelectTrigger>
                           <SelectContent>
-                            {categoryOptions.map(cat => (
-                              <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                            ))}
+                            {categoryOptions.map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}
                           </SelectContent>
                         </Select>
-                        <Button 
-                          type="button" 
-                          variant="outline" 
-                          size="sm" 
-                          className="w-full text-xs"
-                          onClick={() => setShowNewCategoryInput(true)}
-                        >
+                        <Button type="button" variant="outline" size="sm" className="w-full text-xs" onClick={() => setShowNewCategoryInput(true)}>
                           + Add New Category
                         </Button>
-                      </div>
-                    ) : (
-                      <div className="space-y-2">
-                        <Input 
-                          value={newCategory} 
-                          onChange={(e) => setNewCategory(e.target.value)}
-                          placeholder="Enter new category"
-                        />
+                      </div> : <div className="space-y-2">
+                        <Input value={newCategory} onChange={e => setNewCategory(e.target.value)} placeholder="Enter new category" />
                         <div className="flex gap-2">
-                          <Button 
-                            type="button" 
-                            size="sm" 
-                            className="flex-1"
-                            onClick={() => {
-                              if (newCategory.trim()) {
-                                setFormCategory(newCategory.trim());
-                                setNewCategory('');
-                                setShowNewCategoryInput(false);
-                              }
-                            }}
-                          >
+                          <Button type="button" size="sm" className="flex-1" onClick={() => {
+                        if (newCategory.trim()) {
+                          setFormCategory(newCategory.trim());
+                          setNewCategory('');
+                          setShowNewCategoryInput(false);
+                        }
+                      }}>
                             Add
                           </Button>
-                          <Button 
-                            type="button" 
-                            variant="outline" 
-                            size="sm" 
-                            className="flex-1"
-                            onClick={() => {
-                              setShowNewCategoryInput(false);
-                              setNewCategory('');
-                            }}
-                          >
+                          <Button type="button" variant="outline" size="sm" className="flex-1" onClick={() => {
+                        setShowNewCategoryInput(false);
+                        setNewCategory('');
+                      }}>
                             Cancel
                           </Button>
                         </div>
-                      </div>
-                    )}
+                      </div>}
                   </div>
                   <div className="grid gap-2">
                     <Label htmlFor="condition">Condition</Label>
@@ -310,87 +260,52 @@ export function ComponentsManagement() {
                   <Label htmlFor="tags">Tags</Label>
                   <div className="space-y-2">
                     {/* Selected Tags */}
-                    {formTags.length > 0 && (
-                      <div className="flex flex-wrap gap-2 p-2 border border-gray-200 rounded-lg bg-gray-50">
-                        {formTags.map((tag, index) => (
-                          <Badge key={index} variant="secondary" className="gap-1">
+                    {formTags.length > 0 && <div className="flex flex-wrap gap-2 p-2 border border-gray-200 rounded-lg bg-gray-50">
+                        {formTags.map((tag, index) => <Badge key={index} variant="secondary" className="gap-1">
                             {tag}
-                            <button
-                              type="button"
-                              onClick={() => setFormTags(formTags.filter((_, i) => i !== index))}
-                              className="ml-1 hover:text-red-600"
-                            >
+                            <button type="button" onClick={() => setFormTags(formTags.filter((_, i) => i !== index))} className="ml-1 hover:text-red-600">
                               ×
                             </button>
-                          </Badge>
-                        ))}
-                      </div>
-                    )}
+                          </Badge>)}
+                      </div>}
                     
                     {/* Tag Selection */}
-                    {!showNewTagInput ? (
-                      <div className="space-y-2">
-                        <Select onValueChange={(value) => {
-                          if (!formTags.includes(value)) {
-                            setFormTags([...formTags, value]);
-                          }
-                        }}>
+                    {!showNewTagInput ? <div className="space-y-2">
+                        <Select onValueChange={value => {
+                      if (!formTags.includes(value)) {
+                        setFormTags([...formTags, value]);
+                      }
+                    }}>
                           <SelectTrigger>
                             <SelectValue placeholder="Select tags" />
                           </SelectTrigger>
                           <SelectContent>
-                            {allTags.filter(tag => !formTags.includes(tag)).map(tag => (
-                              <SelectItem key={tag} value={tag}>{tag}</SelectItem>
-                            ))}
+                            {allTags.filter(tag => !formTags.includes(tag)).map(tag => <SelectItem key={tag} value={tag}>{tag}</SelectItem>)}
                           </SelectContent>
                         </Select>
-                        <Button 
-                          type="button" 
-                          variant="outline" 
-                          size="sm" 
-                          className="w-full text-xs"
-                          onClick={() => setShowNewTagInput(true)}
-                        >
+                        <Button type="button" variant="outline" size="sm" className="w-full text-xs" onClick={() => setShowNewTagInput(true)}>
                           + Add New Tag
                         </Button>
-                      </div>
-                    ) : (
-                      <div className="space-y-2">
-                        <Input 
-                          value={newTag} 
-                          onChange={(e) => setNewTag(e.target.value)}
-                          placeholder="Enter new tag"
-                        />
+                      </div> : <div className="space-y-2">
+                        <Input value={newTag} onChange={e => setNewTag(e.target.value)} placeholder="Enter new tag" />
                         <div className="flex gap-2">
-                          <Button 
-                            type="button" 
-                            size="sm" 
-                            className="flex-1"
-                            onClick={() => {
-                              if (newTag.trim() && !formTags.includes(newTag.trim())) {
-                                setFormTags([...formTags, newTag.trim()]);
-                                setNewTag('');
-                                setShowNewTagInput(false);
-                              }
-                            }}
-                          >
+                          <Button type="button" size="sm" className="flex-1" onClick={() => {
+                        if (newTag.trim() && !formTags.includes(newTag.trim())) {
+                          setFormTags([...formTags, newTag.trim()]);
+                          setNewTag('');
+                          setShowNewTagInput(false);
+                        }
+                      }}>
                             Add
                           </Button>
-                          <Button 
-                            type="button" 
-                            variant="outline" 
-                            size="sm" 
-                            className="flex-1"
-                            onClick={() => {
-                              setShowNewTagInput(false);
-                              setNewTag('');
-                            }}
-                          >
+                          <Button type="button" variant="outline" size="sm" className="flex-1" onClick={() => {
+                        setShowNewTagInput(false);
+                        setNewTag('');
+                      }}>
                             Cancel
                           </Button>
                         </div>
-                      </div>
-                    )}
+                      </div>}
                   </div>
                   <p className="text-xs text-gray-500">Add tags to help users find components for specific projects</p>
                 </div>
@@ -408,23 +323,16 @@ export function ComponentsManagement() {
           <div className="flex gap-4">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <Input
-                placeholder="Search components by name or description..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
+              <Input placeholder="Search components by name or description..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10" />
             </div>
             <Select value={selectedCategory} onValueChange={setSelectedCategory}>
               <SelectTrigger className="w-48">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {categories.map(cat => (
-                  <SelectItem key={cat} value={cat}>
+                {categories.map(cat => <SelectItem key={cat} value={cat}>
                     {cat === 'all' ? 'All Categories' : cat}
-                  </SelectItem>
-                ))}
+                  </SelectItem>)}
               </SelectContent>
             </Select>
           </div>
@@ -433,21 +341,12 @@ export function ComponentsManagement() {
           <div className="flex items-center gap-2 flex-wrap">
             <Filter className="w-4 h-4 text-gray-500" />
             <span className="text-sm text-gray-600">Filter by tags:</span>
-            {allTags.map(tag => (
-              <Badge
-                key={tag}
-                variant={selectedTags.includes(tag) ? 'default' : 'outline'}
-                className="cursor-pointer"
-                onClick={() => toggleTag(tag)}
-              >
+            {allTags.map(tag => <Badge key={tag} variant={selectedTags.includes(tag) ? 'default' : 'outline'} className="cursor-pointer" onClick={() => toggleTag(tag)}>
                 {tag}
-              </Badge>
-            ))}
-            {selectedTags.length > 0 && (
-              <Button variant="ghost" size="sm" onClick={() => setSelectedTags([])}>
+              </Badge>)}
+            {selectedTags.length > 0 && <Button variant="ghost" size="sm" onClick={() => setSelectedTags([])}>
                 Clear filters
-              </Button>
-            )}
+              </Button>}
           </div>
         </div>
 
@@ -455,21 +354,11 @@ export function ComponentsManagement() {
         <div className="flex items-center justify-end gap-2 mb-6">
           <span className="text-sm text-gray-600">View:</span>
           <div className="flex gap-1 border border-gray-200 rounded-lg p-1">
-            <Button
-              variant={viewMode === 'cards' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setViewMode('cards')}
-              className="gap-2"
-            >
+            <Button variant={viewMode === 'cards' ? 'default' : 'ghost'} size="sm" onClick={() => setViewMode('cards')} className="gap-2">
               <LayoutGrid className="w-4 h-4" />
               Cards
             </Button>
-            <Button
-              variant={viewMode === 'list' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setViewMode('list')}
-              className="gap-2"
-            >
+            <Button variant={viewMode === 'list' ? 'default' : 'ghost'} size="sm" onClick={() => setViewMode('list')} className="gap-2">
               <List className="w-4 h-4" />
               List
             </Button>
@@ -478,10 +367,8 @@ export function ComponentsManagement() {
       </div>
 
       {/* Components Grid */}
-      {viewMode === 'cards' ? (
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-          {filteredComponents.map(component => (
-            <Card key={component.id} className="hover:shadow-md transition-shadow">
+      {viewMode === 'cards' ? <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+          {filteredComponents.map(component => <Card key={component.id} className="hover:shadow-md transition-shadow">
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
@@ -525,11 +412,9 @@ export function ComponentsManagement() {
                 <div className="mb-4">
                   <p className="text-sm text-gray-600 mb-2">Tags:</p>
                   <div className="flex flex-wrap gap-1">
-                    {component.tags.map(tag => (
-                      <Badge key={tag} variant="outline" className="text-xs">
+                    {component.tags.map(tag => <Badge key={tag} variant="outline" className="text-xs">
                         {tag}
-                      </Badge>
-                    ))}
+                      </Badge>)}
                   </div>
                 </div>
 
@@ -540,11 +425,8 @@ export function ComponentsManagement() {
                   </a>
                 </Button>
               </CardContent>
-            </Card>
-          ))}
-        </div>
-      ) : (
-        <Card>
+            </Card>)}
+        </div> : <Card>
           <CardContent className="p-0">
             <div className="overflow-x-auto">
               <Table>
@@ -561,11 +443,7 @@ export function ComponentsManagement() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredComponents.map(component => (
-                    <TableRow 
-                      key={component.id}
-                      className="hover:bg-gray-50"
-                    >
+                  {filteredComponents.map(component => <TableRow key={component.id} className="hover:bg-gray-50">
                       <TableCell className="font-medium">
                         <div className="flex flex-col gap-1">
                           <span className="break-words">{component.name}</span>
@@ -589,13 +467,10 @@ export function ComponentsManagement() {
                       <TableCell className="text-xs whitespace-nowrap">{new Date(component.purchaseDate).toLocaleDateString()}</TableCell>
                       <TableCell>
                         <div className="flex flex-wrap gap-1">
-                          {component.tags.slice(0, 2).map(tag => (
-                            <Badge key={tag} variant="outline" className="text-xs whitespace-nowrap">
+                          {component.tags.slice(0, 2).map(tag => <Badge key={tag} variant="outline" className="text-xs whitespace-nowrap">
                               {tag}
-                            </Badge>
-                          ))}
-                          {component.tags.length > 2 && (
-                            <Tooltip>
+                            </Badge>)}
+                          {component.tags.length > 2 && <Tooltip>
                               <TooltipTrigger asChild>
                                 <Badge variant="outline" className="text-xs cursor-help">
                                   +{component.tags.length - 2}
@@ -604,11 +479,10 @@ export function ComponentsManagement() {
                               <TooltipContent>
                                 <p>{component.tags.slice(2).join(', ')}</p>
                               </TooltipContent>
-                            </Tooltip>
-                          )}
+                            </Tooltip>}
                         </div>
                       </TableCell>
-                      <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
+                      <TableCell className="text-right" onClick={e => e.stopPropagation()}>
                         <div className="flex gap-1 justify-end">
                           <Tooltip>
                             <TooltipTrigger asChild>
@@ -644,14 +518,11 @@ export function ComponentsManagement() {
                           </Tooltip>
                         </div>
                       </TableCell>
-                    </TableRow>
-                  ))}
+                    </TableRow>)}
                 </TableBody>
               </Table>
             </div>
           </CardContent>
-        </Card>
-      )}
-    </div>
-  );
+        </Card>}
+    </div>;
 }

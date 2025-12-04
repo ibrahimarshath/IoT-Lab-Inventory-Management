@@ -3,23 +3,19 @@ import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Badge } from './ui/badge';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './ui/dialog';
 import { Label } from './ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
-import { Plus, Search, CheckCircle, AlertCircle, Clock, Mail, Phone, X } from 'lucide-react';
-
-
-
-
+import { Plus, Search, CheckCircle, AlertCircle, Clock, Mail, X } from 'lucide-react';
 export function BorrowingManagement() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [userDialogOpen, setUserDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
-  
+
   // Form states
   const [formUserName, setFormUserName] = useState('');
   const [formUserEmail, setFormUserEmail] = useState('');
@@ -29,152 +25,165 @@ export function BorrowingManagement() {
   const [selectedComponents, setSelectedComponents] = useState([]);
   const [formReturnDate, setFormReturnDate] = useState('');
   const [formPurpose, setFormPurpose] = useState('');
-
-  const handleUserClick = (userName) => {
+  const handleUserClick = userName => {
     setSelectedUser(userName);
     setUserDialogOpen(true);
   };
-
-  const components = [
-    { id: 'COMP-001', name: 'Arduino Uno R3', category: 'Microcontroller', available: 5 },
-    { id: 'COMP-002', name: 'Raspberry Pi 4 Model B (4GB)', category: 'Single Board Computer', available: 3 },
-    { id: 'COMP-003', name: 'STM32 DevKit V1', category: 'Development Board', available: 4 },
-    { id: 'COMP-004', name: 'LIDAR Sensor TFMini Plus', category: 'Sensor', available: 2 },
-    { id: 'COMP-005', name: 'Ultrasonic Sensor HC-SR04', category: 'Sensor', available: 8 },
-    { id: 'COMP-006', name: 'Servo Motor SG90', category: 'Motor', available: 10 },
-    { id: 'COMP-007', name: 'Motor Driver L298N', category: 'Driver', available: 6 },
-    { id: 'COMP-008', name: 'GPS Module NEO-6M', category: 'Sensor', available: 3 },
-  ];
-
-  const borrowings = [
-    {
-      id: 'BRW-001',
-      userName: 'John Doe',
-      userEmail: 'john.doe@student.edu',
-      userPhone: '+1 (555) 123-4567',
-      componentName: 'Arduino Uno R3',
-      quantity: 2,
-      borrowDate: '2024-11-20',
-      expectedReturnDate: '2024-11-27',
-      status: 'active',
-      purpose: 'Line follower robot project',
-    },
-    {
-      id: 'BRW-002',
-      userName: 'Jane Smith',
-      userEmail: 'jane.smith@student.edu',
-      userPhone: '+1 (555) 234-5678',
-      componentName: 'Raspberry Pi 4 Model B (4GB)',
-      quantity: 1,
-      borrowDate: '2024-11-15',
-      expectedReturnDate: '2024-11-22',
-      actualReturnDate: '2024-11-23',
-      status: 'returned',
-      purpose: 'Computer vision project',
-    },
-    {
-      id: 'BRW-003',
-      userName: 'Mike Johnson',
-      userEmail: 'mike.j@student.edu',
-      userPhone: '+1 (555) 345-6789',
-      componentName: 'STM32 DevKit V1',
-      quantity: 1,
-      borrowDate: '2024-11-22',
-      expectedReturnDate: '2024-11-29',
-      status: 'active',
-      purpose: 'Smart home automation',
-    },
-    {
-      id: 'BRW-004',
-      userName: 'Sarah Wilson',
-      userEmail: 'sarah.w@student.edu',
-      userPhone: '+1 (555) 456-7890',
-      componentName: 'LIDAR Sensor TFMini Plus',
-      quantity: 1,
-      borrowDate: '2024-11-10',
-      expectedReturnDate: '2024-11-17',
-      actualReturnDate: '2024-11-18',
-      status: 'overdue',
-      purpose: 'Obstacle detection and navigation',
-    },
-    {
-      id: 'BRW-005',
-      userName: 'Tom Brown',
-      userEmail: 'tom.brown@student.edu',
-      userPhone: '+1 (555) 567-8901',
-      componentName: 'Motor Driver L298N',
-      quantity: 2,
-      borrowDate: '2024-11-18',
-      expectedReturnDate: '2024-11-25',
-      status: 'active',
-      purpose: 'DC motor control project',
-    },
-    {
-      id: 'BRW-006',
-      userName: 'Alex Chen',
-      userEmail: 'alex.chen@student.edu',
-      userPhone: '+1 (555) 678-9012',
-      componentName: 'GPS Module NEO-6M',
-      quantity: 1,
-      borrowDate: '2024-11-12',
-      expectedReturnDate: '2024-11-25',
-      status: 'active',
-      purpose: 'GPS tracking system',
-    },
-    {
-      id: 'BRW-007',
-      userName: 'Emily Davis',
-      userEmail: 'emily.d@student.edu',
-      userPhone: '+1 (555) 789-0123',
-      componentName: 'Motor Driver L298N',
-      quantity: 1,
-      borrowDate: '2024-11-15',
-      expectedReturnDate: '2024-11-26',
-      status: 'active',
-      purpose: 'Autonomous car project',
-    },
-    {
-      id: 'BRW-008',
-      userName: 'Chris Lee',
-      userEmail: 'chris.lee@student.edu',
-      userPhone: '+1 (555) 890-1234',
-      componentName: 'Ultrasonic Sensor HC-SR04',
-      quantity: 3,
-      borrowDate: '2024-11-24',
-      expectedReturnDate: '2024-11-27',
-      status: 'active',
-      purpose system',
-    },
-  ];
-
+  const components = [{
+    id: '1',
+    name: 'Arduino Uno R3',
+    category: 'Microcontroller',
+    available: 18
+  }, {
+    id: '2',
+    name: 'Raspberry Pi 4 Model B (4GB)',
+    category: 'Single Board Computer',
+    available: 12
+  }, {
+    id: '3',
+    name: 'ESP32 DevKit V1',
+    category: 'Microcontroller',
+    available: 22
+  }, {
+    id: '4',
+    name: 'LIDAR Sensor TFMini Plus',
+    category: 'Sensor',
+    available: 5
+  }, {
+    id: '5',
+    name: 'Ultrasonic Sensor HC-SR04',
+    category: 'Sensor',
+    available: 28
+  }, {
+    id: '6',
+    name: 'Servo Motor SG90',
+    category: 'Actuator',
+    available: 35
+  }, {
+    id: '7',
+    name: 'Motor Driver L298N',
+    category: 'Driver',
+    available: 15
+  }, {
+    id: '8',
+    name: 'GPS Module NEO-6M',
+    category: 'Sensor',
+    available: 6
+  }];
+  const borrowings = [{
+    id: '1',
+    userName: 'John Doe',
+    userEmail: 'john.doe@student.edu',
+    userPhone: '+1 (555) 123-4567',
+    componentName: 'Arduino Uno R3',
+    quantity: 2,
+    borrowDate: '2024-11-20',
+    expectedReturnDate: '2024-11-27',
+    status: 'active',
+    purpose: 'Line follower robot project'
+  }, {
+    id: '2',
+    userName: 'Jane Smith',
+    userEmail: 'jane.smith@student.edu',
+    userPhone: '+1 (555) 234-5678',
+    componentName: 'Raspberry Pi 4 Model B (4GB)',
+    quantity: 1,
+    borrowDate: '2024-11-15',
+    expectedReturnDate: '2024-11-22',
+    actualReturnDate: '2024-11-23',
+    status: 'returned',
+    purpose: 'Computer vision project'
+  }, {
+    id: '3',
+    userName: 'Mike Johnson',
+    userEmail: 'mike.j@student.edu',
+    userPhone: '+1 (555) 345-6789',
+    componentName: 'ESP32 DevKit V1',
+    quantity: 3,
+    borrowDate: '2024-11-22',
+    expectedReturnDate: '2024-11-29',
+    status: 'active',
+    purpose: 'IoT home automation'
+  }, {
+    id: '4',
+    userName: 'Sarah Wilson',
+    userEmail: 'sarah.w@student.edu',
+    userPhone: '+1 (555) 456-7890',
+    componentName: 'LIDAR Sensor TFMini Plus',
+    quantity: 1,
+    borrowDate: '2024-11-10',
+    expectedReturnDate: '2024-11-17',
+    actualReturnDate: '2024-11-18',
+    status: 'returned',
+    purpose: 'Autonomous navigation'
+  }, {
+    id: '5',
+    userName: 'Tom Brown',
+    userEmail: 'tom.brown@student.edu',
+    userPhone: '+1 (555) 567-8901',
+    componentName: 'Drone Frame Kit',
+    quantity: 1,
+    borrowDate: '2024-11-18',
+    expectedReturnDate: '2024-11-25',
+    status: 'active',
+    purpose: 'Quadcopter build'
+  }, {
+    id: '6',
+    userName: 'Alex Chen',
+    userEmail: 'alex.chen@student.edu',
+    userPhone: '+1 (555) 678-9012',
+    componentName: 'GPS Module NEO-6M',
+    quantity: 2,
+    borrowDate: '2024-11-12',
+    expectedReturnDate: '2024-11-25',
+    status: 'overdue',
+    purpose: 'GPS tracking system'
+  }, {
+    id: '7',
+    userName: 'Emily Davis',
+    userEmail: 'emily.d@student.edu',
+    userPhone: '+1 (555) 789-0123',
+    componentName: 'Motor Driver L298N',
+    quantity: 2,
+    borrowDate: '2024-11-15',
+    expectedReturnDate: '2024-11-26',
+    status: 'overdue',
+    purpose: 'Robot car project'
+  }, {
+    id: '8',
+    userName: 'Chris Lee',
+    userEmail: 'chris.lee@student.edu',
+    userPhone: '+1 (555) 890-1234',
+    componentName: 'Camera Module OV7670',
+    quantity: 1,
+    borrowDate: '2024-11-24',
+    expectedReturnDate: '2024-11-27',
+    status: 'overdue',
+    purpose: 'Surveillance system'
+  }];
   const activeBorrowings = borrowings.filter(b => b.status === 'active');
   const overdueBorrowings = borrowings.filter(b => b.status === 'overdue');
   const returnedBorrowings = borrowings.filter(b => b.status === 'returned');
-
-  const filteredBorrowings = (list) => 
-    list.filter(b =>
-      b.userName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      b.componentName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      b.userEmail.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-
-  const getStatusBadge = (status) => {
+  const filteredBorrowings = list => list.filter(b => b.userName.toLowerCase().includes(searchQuery.toLowerCase()) || b.componentName.toLowerCase().includes(searchQuery.toLowerCase()) || b.userEmail.toLowerCase().includes(searchQuery.toLowerCase()));
+  const getStatusBadge = status => {
     switch (status) {
-      case 'active' <Badge className="bg-blue-500"><Clock className="w-3 h-3 mr-1" />Active</Badge>;
-      case 'overdue' <Badge variant="destructive"><AlertCircle className="w-3 h-3 mr-1" />Overdue</Badge>;
-      case 'returned' <Badge className="bg-green-500"><CheckCircle className="w-3 h-3 mr-1" />Returned</Badge>;
-      default null;
+      case 'active':
+        return <Badge className="bg-blue-500"><Clock className="w-3 h-3 mr-1" />Active</Badge>;
+      case 'overdue':
+        return <Badge variant="destructive"><AlertCircle className="w-3 h-3 mr-1" />Overdue</Badge>;
+      case 'returned':
+        return <Badge className="bg-green-500"><CheckCircle className="w-3 h-3 mr-1" />Returned</Badge>;
+      default:
+        return null;
     }
   };
-
-  const getDaysOverdue = (expectedReturnDate) => {
+  const getDaysOverdue = expectedReturnDate => {
     const expected = new Date(expectedReturnDate);
     const today = new Date();
     const diffTime = today.getTime() - expected.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return diffDays > 0 ? diffDays : 0;
   };
-
   const resetForm = () => {
     setFormUserName('');
     setFormUserEmail('');
@@ -185,38 +194,32 @@ export function BorrowingManagement() {
     setFormReturnDate('');
     setFormPurpose('');
   };
-
-  const handleDialogChange = (open) => {
+  const handleDialogChange = open => {
     setIsAddDialogOpen(open);
     if (!open) {
       resetForm();
     }
   };
-
   const handleAddComponent = () => {
     if (formComponent && formQuantity && parseInt(formQuantity) > 0) {
       const component = components.find(c => c.name === formComponent);
       if (component && !selectedComponents.find(sc => sc.componentId === component.id)) {
-        setSelectedComponents([
-          ...selectedComponents,
-          {
-            componentId: component.id,
-            componentName: component.name,
-            quantity: parseInt(formQuantity),
-          },
-        ]);
+        setSelectedComponents([...selectedComponents, {
+          componentId: component.id,
+          componentName: component.name,
+          quantity: parseInt(formQuantity)
+        }]);
         setFormComponent('');
         setFormQuantity('1');
       }
     }
   };
-
-  const handleRemoveComponent = (componentId) => {
+  const handleRemoveComponent = componentId => {
     setSelectedComponents(selectedComponents.filter(sc => sc.componentId !== componentId));
   };
-
-  const BorrowingTable = ({ borrowings }: { borrowings }) => (
-    <Table>
+  const BorrowingTable = ({
+    borrowings
+  }) => <Table>
       <TableHeader>
         <TableRow>
           <TableHead className="min-w-[160px]">User</TableHead>
@@ -229,13 +232,9 @@ export function BorrowingManagement() {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {borrowings.map(borrowing => (
-          <TableRow key={borrowing.id}>
+        {borrowings.map(borrowing => <TableRow key={borrowing.id}>
             <TableCell>
-              <button
-                onClick={() => handleUserClick(borrowing.userName)}
-                className="text-left hover:bg-blue-50 p-2 -m-2 rounded transition-colors w-full"
-              >
+              <button onClick={() => handleUserClick(borrowing.userName)} className="text-left hover:bg-blue-50 p-2 -m-2 rounded transition-colors w-full">
                 <p className="text-sm text-gray-900 break-words">{borrowing.userName}</p>
                 <p className="text-xs text-gray-500 break-words">{borrowing.userEmail}</p>
               </button>
@@ -253,43 +252,31 @@ export function BorrowingManagement() {
             <TableCell className="text-sm">
               <div>
                 <p className="whitespace-nowrap">{new Date(borrowing.expectedReturnDate).toLocaleDateString()}</p>
-                {borrowing.status === 'overdue' && (
-                  <p className="text-xs text-red-600 whitespace-nowrap">
+                {borrowing.status === 'overdue' && <p className="text-xs text-red-600 whitespace-nowrap">
                     {getDaysOverdue(borrowing.expectedReturnDate)} days overdue
-                  </p>
-                )}
-                {borrowing.actualReturnDate && (
-                  <p className="text-xs text-gray-500 whitespace-nowrap">
+                  </p>}
+                {borrowing.actualReturnDate && <p className="text-xs text-gray-500 whitespace-nowrap">
                     Returned: {new Date(borrowing.actualReturnDate).toLocaleDateString()}
-                  </p>
-                )}
+                  </p>}
               </div>
             </TableCell>
             <TableCell>{getStatusBadge(borrowing.status)}</TableCell>
             <TableCell>
               <div className="flex gap-2">
-                {borrowing.status !== 'returned' && (
-                  <Button size="sm" variant="outline" className="whitespace-nowrap">
+                {borrowing.status !== 'returned' && <Button size="sm" variant="outline" className="whitespace-nowrap">
                     Mark Returned
-                  </Button>
-                )}
+                  </Button>}
               </div>
             </TableCell>
-          </TableRow>
-        ))}
-        {borrowings.length === 0 && (
-          <TableRow>
+          </TableRow>)}
+        {borrowings.length === 0 && <TableRow>
             <TableCell colSpan={7} className="text-center text-gray-500 py-8">
               No borrowings found
             </TableCell>
-          </TableRow>
-        )}
+          </TableRow>}
       </TableBody>
-    </Table>
-  );
-
-  return (
-    <div className="p-8">
+    </Table>;
+  return <div className="p-8">
       <div className="mb-8">
         <div className="flex items-center justify-between mb-6">
           <div>
@@ -309,34 +296,17 @@ export function BorrowingManagement() {
               <div className="grid gap-4 py-4">
                 <div className="grid gap-2">
                   <Label htmlFor="userName">Student Name</Label>
-                  <Input
-                    id="userName"
-                    placeholder="Enter student name"
-                    value={formUserName}
-                    onChange={(e) => setFormUserName(e.target.value)}
-                  />
+                  <Input id="userName" placeholder="Enter student name" value={formUserName} onChange={e => setFormUserName(e.target.value)} />
                 </div>
                 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="grid gap-2">
                     <Label htmlFor="userEmail">Email</Label>
-                    <Input
-                      id="userEmail"
-                      type="email"
-                      placeholder="student@example.edu"
-                      value={formUserEmail}
-                      onChange={(e) => setFormUserEmail(e.target.value)}
-                    />
+                    <Input id="userEmail" type="email" placeholder="student@example.edu" value={formUserEmail} onChange={e => setFormUserEmail(e.target.value)} />
                   </div>
                   <div className="grid gap-2">
                     <Label htmlFor="userPhone">Phone Number</Label>
-                    <Input
-                      id="userPhone"
-                      type="tel"
-                      placeholder="+1 (555) 000-0000"
-                      value={formUserPhone}
-                      onChange={(e) => setFormUserPhone(e.target.value)}
-                    />
+                    <Input id="userPhone" type="tel" placeholder="+1 (555) 000-0000" value={formUserPhone} onChange={e => setFormUserPhone(e.target.value)} />
                   </div>
                 </div>
                 
@@ -351,31 +321,17 @@ export function BorrowingManagement() {
                           <SelectValue placeholder="Select component" />
                         </SelectTrigger>
                         <SelectContent>
-                          {components.filter(comp => !selectedComponents.find(sc => sc.componentId === comp.id)).map(comp => (
-                            <SelectItem key={comp.id} value={comp.name}>
+                          {components.filter(comp => !selectedComponents.find(sc => sc.componentId === comp.id)).map(comp => <SelectItem key={comp.id} value={comp.name}>
                               {comp.name} ({comp.available} available)
-                            </SelectItem>
-                          ))}
+                            </SelectItem>)}
                         </SelectContent>
                       </Select>
                     </div>
                     <div className="col-span-3">
-                      <Input 
-                        type="number" 
-                        min="1" 
-                        placeholder="Qty" 
-                        value={formQuantity} 
-                        onChange={(e) => setFormQuantity(e.target.value)} 
-                      />
+                      <Input type="number" min="1" placeholder="Qty" value={formQuantity} onChange={e => setFormQuantity(e.target.value)} />
                     </div>
                     <div className="col-span-2">
-                      <Button 
-                        type="button" 
-                        className="w-full gap-1" 
-                        size="sm"
-                        onClick={handleAddComponent}
-                        disabled={!formComponent || !formQuantity || parseInt(formQuantity) <= 0}
-                      >
+                      <Button type="button" className="w-full gap-1" size="sm" onClick={handleAddComponent} disabled={!formComponent || !formQuantity || parseInt(formQuantity) <= 0}>
                         <Plus className="w-4 h-4" />
                         Add
                       </Button>
@@ -383,43 +339,31 @@ export function BorrowingManagement() {
                   </div>
 
                   {/* Selected Components List */}
-                  {selectedComponents.length > 0 && (
-                    <div className="space-y-2 mb-3">
-                      {selectedComponents.map((sc) => (
-                        <div key={sc.componentId} className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
+                  {selectedComponents.length > 0 && <div className="space-y-2 mb-3">
+                      {selectedComponents.map(sc => <div key={sc.componentId} className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
                           <div className="flex items-center gap-3">
                             <Badge variant="secondary">{sc.quantity}x</Badge>
                             <span className="text-sm">{sc.componentName}</span>
                           </div>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleRemoveComponent(sc.componentId)}
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                          >
+                          <Button type="button" variant="ghost" size="sm" onClick={() => handleRemoveComponent(sc.componentId)} className="text-red-600 hover:text-red-700 hover:bg-red-50">
                             <X className="w-4 h-4" />
                           </Button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                        </div>)}
+                    </div>}
 
-                  {selectedComponents.length === 0 && (
-                    <p className="text-sm text-gray-500 text-center py-4 bg-gray-50 rounded-lg">
+                  {selectedComponents.length === 0 && <p className="text-sm text-gray-500 text-center py-4 bg-gray-50 rounded-lg">
                       No components added yet
-                    </p>
-                  )}
+                    </p>}
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="grid gap-2">
                     <Label htmlFor="returnDate">Expected Return Date</Label>
-                    <Input id="returnDate" type="date" value={formReturnDate} onChange={(e) => setFormReturnDate(e.target.value)} />
+                    <Input id="returnDate" type="date" value={formReturnDate} onChange={e => setFormReturnDate(e.target.value)} />
                   </div>
                   <div className="grid gap-2">
                     <Label htmlFor="purpose">Purpose / Project</Label>
-                    <Input id="purpose" placeholder="e.g., Line follower robot" value={formPurpose} onChange={(e) => setFormPurpose(e.target.value)} />
+                    <Input id="purpose" placeholder="e.g., Line follower robot" value={formPurpose} onChange={e => setFormPurpose(e.target.value)} />
                   </div>
                 </div>
               </div>
@@ -436,20 +380,12 @@ export function BorrowingManagement() {
         {/* Search Bar */}
         <div className="relative mb-6">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <Input
-            placeholder="Search by user name, email, or component..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
-          />
+          <Input placeholder="Search by user name, email, or component..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10" />
         </div>
 
         {/* Statistics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card 
-            className="cursor-pointer hover:shadow-md transition-shadow"
-            onClick={() => setActiveTab('all')}
-          >
+          <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setActiveTab('all')}>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -462,10 +398,7 @@ export function BorrowingManagement() {
               </div>
             </CardContent>
           </Card>
-          <Card 
-            className="cursor-pointer hover:shadow-md transition-shadow"
-            onClick={() => setActiveTab('active')}
-          >
+          <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setActiveTab('active')}>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -478,10 +411,7 @@ export function BorrowingManagement() {
               </div>
             </CardContent>
           </Card>
-          <Card 
-            className="cursor-pointer hover:shadow-md transition-shadow"
-            onClick={() => setActiveTab('overdue')}
-          >
+          <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setActiveTab('overdue')}>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -494,10 +424,7 @@ export function BorrowingManagement() {
               </div>
             </CardContent>
           </Card>
-          <Card 
-            className="cursor-pointer hover:shadow-md transition-shadow"
-            onClick={() => setActiveTab('returned')}
-          >
+          <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setActiveTab('returned')}>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -594,6 +521,5 @@ export function BorrowingManagement() {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
-  );
+    </div>;
 }

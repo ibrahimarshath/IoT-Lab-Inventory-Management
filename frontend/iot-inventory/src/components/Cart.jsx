@@ -12,16 +12,15 @@ import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Calendar } from './ui/calendar';
 import { toast } from 'sonner@2.0.3';
 import { format } from 'date-fns@4.1.0';
-
-
-
-
-export function Cart({ username, cart, setCart }) {
+export function Cart({
+  username,
+  cart,
+  setCart
+}) {
   const [purpose, setPurpose] = useState('');
   const [expectedReturn, setExpectedReturn] = useState();
   const [isSubmitDialogOpen, setIsSubmitDialogOpen] = useState(false);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
-
   const updateQuantity = (componentId, newQuantity) => {
     if (newQuantity < 1) {
       removeFromCart(componentId);
@@ -31,15 +30,14 @@ export function Cart({ username, cart, setCart }) {
     if (item && newQuantity > item.component.available) {
       return; // Don't allow more than available
     }
-    setCart(prev => prev.map(item =>
-      item.component.id === componentId ? { ...item, quantity }
-    ));
+    setCart(prev => prev.map(item => item.component.id === componentId ? {
+      ...item,
+      quantity: newQuantity
+    } : item));
   };
-
-  const removeFromCart = (componentId) => {
+  const removeFromCart = componentId => {
     setCart(prev => prev.filter(item => item.component.id !== componentId));
   };
-
   const handleSubmitRequest = () => {
     if (cart.length === 0) return;
     if (!purpose.trim() || !expectedReturn) {
@@ -48,30 +46,25 @@ export function Cart({ username, cart, setCart }) {
     }
     setIsSubmitDialogOpen(true);
   };
-
   const confirmSubmit = () => {
     // Here you would typically send the request to backend
     console.log('Submitting borrow request:', {
       username,
-      items,
+      items: cart,
       purpose,
       expectedReturn,
-      submittedAt Date()
+      submittedAt: new Date()
     });
-    
+
     // Clear cart and form
     setCart([]);
     setPurpose('');
     setExpectedReturn(undefined);
     setIsSubmitDialogOpen(false);
-    
     toast.success('Borrow request submitted successfully!');
   };
-
   const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-
-  return (
-    <div>
+  return <div>
       <div className="mb-8">
         <div className="flex items-center justify-between">
           <div>
@@ -88,16 +81,13 @@ export function Cart({ username, cart, setCart }) {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Cart Items */}
         <div className="lg:col-span-2">
-          {cart.length === 0 ? (
-            <Card>
+          {cart.length === 0 ? <Card>
               <CardContent className="p-12 text-center">
                 <ShoppingCart className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                 <h3 className="text-gray-900 mb-2">Your cart is empty</h3>
                 <p className="text-gray-600">Browse components and add them to your cart to create a borrow request</p>
               </CardContent>
-            </Card>
-          ) : (
-            <Card>
+            </Card> : <Card>
               <CardHeader>
                 <CardTitle>Cart Items ({cart.length})</CardTitle>
               </CardHeader>
@@ -113,8 +103,7 @@ export function Cart({ username, cart, setCart }) {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {cart.map((item) => (
-                      <TableRow key={item.component.id}>
+                    {cart.map(item => <TableRow key={item.component.id}>
                         <TableCell className="min-w-[250px]">
                           <div>
                             <p className="font-medium">{item.component.name}</p>
@@ -131,48 +120,25 @@ export function Cart({ username, cart, setCart }) {
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center justify-center gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => updateQuantity(item.component.id, item.quantity - 1)}
-                              disabled={item.quantity <= 1}
-                            >
+                            <Button variant="outline" size="sm" onClick={() => updateQuantity(item.component.id, item.quantity - 1)} disabled={item.quantity <= 1}>
                               <Minus className="w-3 h-3" />
                             </Button>
-                            <Input
-                              type="number"
-                              value={item.quantity}
-                              onChange={(e) => updateQuantity(item.component.id, parseInt(e.target.value) || 1)}
-                              className="w-16 text-center"
-                              min="1"
-                              max={item.component.available}
-                            />
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => updateQuantity(item.component.id, item.quantity + 1)}
-                              disabled={item.quantity >= item.component.available}
-                            >
+                            <Input type="number" value={item.quantity} onChange={e => updateQuantity(item.component.id, parseInt(e.target.value) || 1)} className="w-16 text-center" min="1" max={item.component.available} />
+                            <Button variant="outline" size="sm" onClick={() => updateQuantity(item.component.id, item.quantity + 1)} disabled={item.quantity >= item.component.available}>
                               <Plus className="w-3 h-3" />
                             </Button>
                           </div>
                         </TableCell>
                         <TableCell className="text-right">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => removeFromCart(item.component.id)}
-                          >
+                          <Button variant="ghost" size="sm" onClick={() => removeFromCart(item.component.id)}>
                             <Trash2 className="w-4 h-4 text-red-600" />
                           </Button>
                         </TableCell>
-                      </TableRow>
-                    ))}
+                      </TableRow>)}
                   </TableBody>
                 </Table>
               </CardContent>
-            </Card>
-          )}
+            </Card>}
         </div>
 
         {/* Request Details */}
@@ -184,42 +150,23 @@ export function Cart({ username, cart, setCart }) {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="purpose">Purpose of Borrowing</Label>
-                <Textarea
-                  id="purpose"
-                  placeholder="e.g., Building a drone for course project..."
-                  value={purpose}
-                  onChange={(e) => setPurpose(e.target.value)}
-                  rows={4}
-                />
+                <Textarea id="purpose" placeholder="e.g., Building a drone for course project..." value={purpose} onChange={e => setPurpose(e.target.value)} rows={4} />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="returnDate">Expected Return Date</Label>
                 <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
                   <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="w-full justify-start text-left font-normal"
-                    >
+                    <Button variant="outline" className="w-full justify-start text-left font-normal">
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {expectedReturn ? (
-                        format(expectedReturn, 'PPP')
-                      ) : (
-                        <span className="text-muted-foreground">Pick a date</span>
-                      )}
+                      {expectedReturn ? format(expectedReturn, 'PPP') : <span className="text-muted-foreground">Pick a date</span>}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0 bg-white" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={expectedReturn}
-                      onSelect={(date) => {
-                        setExpectedReturn(date);
-                        setIsCalendarOpen(false);
-                      }}
-                      disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
-                      initialFocus
-                    />
+                    <Calendar mode="single" selected={expectedReturn} onSelect={date => {
+                    setExpectedReturn(date);
+                    setIsCalendarOpen(false);
+                  }} disabled={date => date < new Date(new Date().setHours(0, 0, 0, 0))} initialFocus />
                   </PopoverContent>
                 </Popover>
               </div>
@@ -235,11 +182,7 @@ export function Cart({ username, cart, setCart }) {
                 </div>
               </div>
 
-              <Button
-                className="w-full gap-2"
-                onClick={handleSubmitRequest}
-                disabled={cart.length === 0}
-              >
+              <Button className="w-full gap-2" onClick={handleSubmitRequest} disabled={cart.length === 0}>
                 <Send className="w-4 h-4" />
                 Submit Borrow Request
               </Button>
@@ -261,11 +204,9 @@ export function Cart({ username, cart, setCart }) {
             <div>
               <p className="text-sm text-gray-600 mb-1">Components:</p>
               <ul className="space-y-1">
-                {cart.map(item => (
-                  <li key={item.component.id} className="text-sm">
+                {cart.map(item => <li key={item.component.id} className="text-sm">
                     {item.component.name} × {item.quantity}
-                  </li>
-                ))}
+                  </li>)}
               </ul>
             </div>
             <div>
@@ -287,6 +228,5 @@ export function Cart({ username, cart, setCart }) {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
-  );
+    </div>;
 }

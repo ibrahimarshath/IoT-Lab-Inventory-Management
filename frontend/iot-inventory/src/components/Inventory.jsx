@@ -8,19 +8,7 @@ import { Label } from './ui/label';
 import { Input } from './ui/input';
 import { Textarea } from './ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { Package, 
-  TrendingUp, 
-  TrendingDown, 
-  AlertTriangle, 
-  Download, 
-  Plus,
-  Minus,
-  Filter,
-  Search,
-  History } from 'lucide-react';
-
-
-
+import { Package, TrendingUp, TrendingDown, AlertTriangle, Download, Plus, Minus, Search, History } from 'lucide-react';
 export function Inventory() {
   const [isAdjustDialogOpen, setIsAdjustDialogOpen] = useState(false);
   const [isMovementHistoryOpen, setIsMovementHistoryOpen] = useState(false);
@@ -28,236 +16,215 @@ export function Inventory() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterCategory, setFilterCategory] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
-
-  const inventoryItems = [
-    {
-      id,
-      name Uno R3',
-      category,
-      quantity,
-      available,
-      borrowed,
-      threshold,
-      location A1',
-      lastUpdated: '2024-12-01',
-      value,
-    },
-    {
-      id,
-      name Nano',
-      category,
-      quantity,
-      available,
-      borrowed,
-      threshold,
-      location A2',
-      lastUpdated: '2024-12-02',
-      value,
-    },
-    {
-      id,
-      name Pi 4 (4GB)',
-      category Board Computer',
-      quantity,
-      available,
-      borrowed,
-      threshold,
-      location B1',
-      lastUpdated: '2024-11-30',
-      value,
-    },
-    {
-      id,
-      name DevKit',
-      category,
-      quantity,
-      available,
-      borrowed,
-      threshold,
-      location A3',
-      lastUpdated: '2024-12-01',
-      value,
-    },
-    {
-      id,
-      name Sensor HC-SR04',
-      category,
-      quantity,
-      available,
-      borrowed,
-      threshold,
-      location C2',
-      lastUpdated: '2024-12-02',
-      value,
-    },
-    {
-      id,
-      name Temperature & Humidity Sensor',
-      category,
-      quantity,
-      available,
-      borrowed,
-      threshold,
-      location C3',
-      lastUpdated: '2024-12-01',
-      value,
-    },
-    {
-      id,
-      name Motor SG90',
-      category,
-      quantity,
-      available,
-      borrowed,
-      threshold,
-      location D1',
-      lastUpdated: '2024-11-29',
-      value,
-    },
-    {
-      id,
-      name Motor Driver',
-      category Module',
-      quantity,
-      available,
-      borrowed,
-      threshold,
-      location D2',
-      lastUpdated: '2024-12-01',
-      value,
-    },
-    {
-      id,
-      name 830 Points',
-      category,
-      quantity,
-      available,
-      borrowed,
-      threshold,
-      location E1',
-      lastUpdated: '2024-12-02',
-      value,
-    },
-    {
-      id,
-      name Wires (Pack of 40)',
-      category,
-      quantity,
-      available,
-      borrowed,
-      threshold,
-      location F1',
-      lastUpdated: '2024-12-01',
-      value,
-    },
-    {
-      id,
-      name Display 0.96"',
-      category,
-      quantity,
-      available,
-      borrowed,
-      threshold,
-      location G1',
-      lastUpdated: '2024-11-28',
-      value,
-    },
-    {
-      id,
-      name Supply 5V 2A',
-      category,
-      quantity,
-      available,
-      borrowed,
-      threshold,
-      location H1',
-      lastUpdated: '2024-12-01',
-      value,
-    },
-  ];
-
-  const stockMovements = [
-    {
-      id,
-      componentName Uno R3',
-      type,
-      quantity,
-      reason Purchase',
-      performedBy,
-      date: '2024-12-01',
-      notes for upcoming semester',
-    },
-    {
-      id,
-      componentName Sensor HC-SR04',
-      type,
-      quantity,
-      reason Borrowing',
-      performedBy Smith',
-      date: '2024-12-02',
-      notes for robotics project',
-    },
-    {
-      id,
-      componentName Motor SG90',
-      type,
-      quantity: -2,
-      reason Components',
-      performedBy,
-      date: '2024-11-29',
-      notes damaged during handling',
-    },
-    {
-      id,
-      componentName DevKit',
-      type,
-      quantity,
-      reason Purchase',
-      performedBy,
-      date: '2024-12-01',
-      notes stock for IoT projects',
-    },
-    {
-      id,
-      componentName Wires (Pack of 40)',
-      type,
-      quantity,
-      reason Borrowing',
-      performedBy Johnson',
-      date: '2024-12-01',
-      notes for circuit assembly',
-    },
-  ];
-
-  const getStockStatus = (item) => {
+  const inventoryItems = [{
+    id: '1',
+    name: 'Arduino Uno R3',
+    category: 'Microcontroller',
+    quantity: 25,
+    available: 18,
+    borrowed: 7,
+    threshold: 10,
+    location: 'Shelf A1',
+    lastUpdated: '2024-12-01',
+    value: 375
+  }, {
+    id: '2',
+    name: 'Arduino Nano',
+    category: 'Microcontroller',
+    quantity: 8,
+    available: 3,
+    borrowed: 5,
+    threshold: 10,
+    location: 'Shelf A2',
+    lastUpdated: '2024-12-02',
+    value: 120
+  }, {
+    id: '3',
+    name: 'Raspberry Pi 4 (4GB)',
+    category: 'Single Board Computer',
+    quantity: 12,
+    available: 9,
+    borrowed: 3,
+    threshold: 5,
+    location: 'Shelf B1',
+    lastUpdated: '2024-11-30',
+    value: 660
+  }, {
+    id: '4',
+    name: 'ESP32 DevKit',
+    category: 'Microcontroller',
+    quantity: 20,
+    available: 15,
+    borrowed: 5,
+    threshold: 8,
+    location: 'Shelf A3',
+    lastUpdated: '2024-12-01',
+    value: 160
+  }, {
+    id: '5',
+    name: 'Ultrasonic Sensor HC-SR04',
+    category: 'Sensor',
+    quantity: 5,
+    available: 2,
+    borrowed: 3,
+    threshold: 15,
+    location: 'Drawer C2',
+    lastUpdated: '2024-12-02',
+    value: 15
+  }, {
+    id: '6',
+    name: 'DHT22 Temperature & Humidity Sensor',
+    category: 'Sensor',
+    quantity: 18,
+    available: 12,
+    borrowed: 6,
+    threshold: 10,
+    location: 'Drawer C3',
+    lastUpdated: '2024-12-01',
+    value: 90
+  }, {
+    id: '7',
+    name: 'Servo Motor SG90',
+    category: 'Actuator',
+    quantity: 10,
+    available: 5,
+    borrowed: 5,
+    threshold: 20,
+    location: 'Drawer D1',
+    lastUpdated: '2024-11-29',
+    value: 50
+  }, {
+    id: '8',
+    name: 'L298N Motor Driver',
+    category: 'Driver Module',
+    quantity: 15,
+    available: 10,
+    borrowed: 5,
+    threshold: 15,
+    location: 'Drawer D2',
+    lastUpdated: '2024-12-01',
+    value: 105
+  }, {
+    id: '9',
+    name: 'Breadboard 830 Points',
+    category: 'Prototyping',
+    quantity: 18,
+    available: 14,
+    borrowed: 4,
+    threshold: 12,
+    location: 'Shelf E1',
+    lastUpdated: '2024-12-02',
+    value: 108
+  }, {
+    id: '10',
+    name: 'Jumper Wires (Pack of 40)',
+    category: 'Accessories',
+    quantity: 6,
+    available: 1,
+    borrowed: 5,
+    threshold: 8,
+    location: 'Drawer F1',
+    lastUpdated: '2024-12-01',
+    value: 24
+  }, {
+    id: '11',
+    name: 'OLED Display 0.96"',
+    category: 'Display',
+    quantity: 14,
+    available: 9,
+    borrowed: 5,
+    threshold: 10,
+    location: 'Drawer G1',
+    lastUpdated: '2024-11-28',
+    value: 168
+  }, {
+    id: '12',
+    name: 'Power Supply 5V 2A',
+    category: 'Power',
+    quantity: 22,
+    available: 18,
+    borrowed: 4,
+    threshold: 12,
+    location: 'Shelf H1',
+    lastUpdated: '2024-12-01',
+    value: 176
+  }];
+  const stockMovements = [{
+    id: '1',
+    componentName: 'Arduino Uno R3',
+    type: 'in',
+    quantity: 10,
+    reason: 'New Purchase',
+    performedBy: 'Admin',
+    date: '2024-12-01',
+    notes: 'Restocking for upcoming semester'
+  }, {
+    id: '2',
+    componentName: 'Ultrasonic Sensor HC-SR04',
+    type: 'out',
+    quantity: 8,
+    reason: 'Student Borrowing',
+    performedBy: 'John Smith',
+    date: '2024-12-02',
+    notes: 'Borrowed for robotics project'
+  }, {
+    id: '3',
+    componentName: 'Servo Motor SG90',
+    type: 'adjustment',
+    quantity: -2,
+    reason: 'Damaged Components',
+    performedBy: 'Admin',
+    date: '2024-11-29',
+    notes: 'Components damaged during handling'
+  }, {
+    id: '4',
+    componentName: 'ESP32 DevKit',
+    type: 'in',
+    quantity: 5,
+    reason: 'New Purchase',
+    performedBy: 'Admin',
+    date: '2024-12-01',
+    notes: 'Additional stock for IoT projects'
+  }, {
+    id: '5',
+    componentName: 'Jumper Wires (Pack of 40)',
+    type: 'out',
+    quantity: 3,
+    reason: 'Student Borrowing',
+    performedBy: 'Alice Johnson',
+    date: '2024-12-01',
+    notes: 'Borrowed for circuit assembly'
+  }];
+  const getStockStatus = item => {
     if (item.quantity < item.threshold) {
-      return { label Stock', variant };
+      return {
+        label: 'Low Stock',
+        variant: 'destructive'
+      };
     } else if (item.quantity <= item.threshold * 1.5) {
-      return { label Stock', variant };
+      return {
+        label: 'Medium Stock',
+        variant: 'default'
+      };
     } else {
-      return { label Stock', variant };
+      return {
+        label: 'In Stock',
+        variant: 'default'
+      };
     }
   };
-
   const filteredItems = inventoryItems.filter(item => {
-    const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         item.category.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) || item.category.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = filterCategory === 'all' || item.category === filterCategory;
-    const matchesStatus = filterStatus === 'all' || 
-                         (filterStatus === 'low' && item.quantity < item.threshold) ||
-                         (filterStatus === 'available' && item.quantity >= item.threshold);
+    const matchesStatus = filterStatus === 'all' || filterStatus === 'low' && item.quantity < item.threshold || filterStatus === 'available' && item.quantity >= item.threshold;
     return matchesSearch && matchesCategory && matchesStatus;
   });
-
   const totalItems = inventoryItems.reduce((sum, item) => sum + item.quantity, 0);
   const totalValue = inventoryItems.reduce((sum, item) => sum + item.value, 0);
   const lowStockItems = inventoryItems.filter(item => item.quantity < item.threshold).length;
   const totalBorrowed = inventoryItems.reduce((sum, item) => sum + item.borrowed, 0);
-
   const categories = Array.from(new Set(inventoryItems.map(item => item.category)));
-
-  return (
-    <div className="space-y-6">
+  return <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-gray-900 mb-2">Inventory Management</h2>
@@ -338,12 +305,7 @@ export function Inventory() {
             <div className="flex-1 min-w-[250px]">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <Input
-                  placeholder="Search components..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                />
+                <Input placeholder="Search components..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10" />
               </div>
             </div>
             <Select value={filterCategory} onValueChange={setFilterCategory}>
@@ -352,9 +314,7 @@ export function Inventory() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Categories</SelectItem>
-                {categories.map(category => (
-                  <SelectItem key={category} value={category}>{category}</SelectItem>
-                ))}
+                {categories.map(category => <SelectItem key={category} value={category}>{category}</SelectItem>)}
               </SelectContent>
             </Select>
             <Select value={filterStatus} onValueChange={setFilterStatus}>
@@ -394,9 +354,8 @@ export function Inventory() {
             </TableHeader>
             <TableBody>
               {filteredItems.map(item => {
-                const status = getStockStatus(item);
-                return (
-                  <TableRow key={item.id}>
+              const status = getStockStatus(item);
+              return <TableRow key={item.id}>
                     <TableCell>
                       <div>
                         <p className="text-sm text-gray-900 break-words">{item.name}</p>
@@ -410,29 +369,21 @@ export function Inventory() {
                     <TableCell className="text-sm text-gray-600">{item.threshold}</TableCell>
                     <TableCell className="text-sm text-gray-900">${item.value}</TableCell>
                     <TableCell>
-                      <Badge 
-                        variant={item.quantity < item.threshold ? 'destructive' : 'default'}
-                        className={item.quantity < item.threshold ? '' : 'bg-green-500'}
-                      >
+                      <Badge variant={item.quantity < item.threshold ? 'destructive' : 'default'} className={item.quantity < item.threshold ? '' : 'bg-green-500'}>
                         {item.quantity < item.threshold && <AlertTriangle className="w-3 h-3 mr-1" />}
                         {status.label}
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        onClick={() => {
-                          setSelectedComponent(item);
-                          setIsAdjustDialogOpen(true);
-                        }}
-                      >
+                      <Button size="sm" variant="outline" onClick={() => {
+                    setSelectedComponent(item);
+                    setIsAdjustDialogOpen(true);
+                  }}>
                         Adjust Stock
                       </Button>
                     </TableCell>
-                  </TableRow>
-                );
-              })}
+                  </TableRow>;
+            })}
             </TableBody>
           </Table>
         </CardContent>
@@ -471,11 +422,7 @@ export function Inventory() {
             </div>
             <div className="grid gap-2">
               <Label htmlFor="reason">Reason</Label>
-              <Textarea 
-                id="reason" 
-                placeholder="Explain the reason for this adjustment..." 
-                rows={3}
-              />
+              <Textarea id="reason" placeholder="Explain the reason for this adjustment..." rows={3} />
             </div>
           </div>
           <div className="flex justify-end gap-3">
@@ -511,40 +458,28 @@ export function Inventory() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {stockMovements.map(movement => (
-                  <TableRow key={movement.id}>
+                {stockMovements.map(movement => <TableRow key={movement.id}>
                     <TableCell className="text-sm">{movement.date}</TableCell>
                     <TableCell className="text-sm">{movement.componentName}</TableCell>
                     <TableCell>
-                      <Badge 
-                        variant={movement.type === 'in' ? 'default' : 'secondary'}
-                        className={
-                          movement.type === 'in' ? 'bg-green-500'  movement.type === 'out' ? 'bg-blue-500'  'bg-orange-500'
-                        }
-                      >
+                      <Badge variant={movement.type === 'in' ? 'default' : 'secondary'} className={movement.type === 'in' ? 'bg-green-500' : movement.type === 'out' ? 'bg-blue-500' : 'bg-orange-500'}>
                         {movement.type === 'in' && <Plus className="w-3 h-3 mr-1" />}
                         {movement.type === 'out' && <Minus className="w-3 h-3 mr-1" />}
-                        {movement.type === 'in' ? 'Stock In'  movement.type === 'out' ? 'Stock Out' : 'Adjustment'}
+                        {movement.type === 'in' ? 'Stock In' : movement.type === 'out' ? 'Stock Out' : 'Adjustment'}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-sm">
-                      <span className={
-                        movement.type === 'in' || (movement.type === 'adjustment' && movement.quantity > 0)
-                          ? 'text-green-600' 
-                          : 'text-red-600'
-                      }>
+                      <span className={movement.type === 'in' || movement.type === 'adjustment' && movement.quantity > 0 ? 'text-green-600' : 'text-red-600'}>
                         {movement.quantity > 0 ? '+' : ''}{movement.quantity}
                       </span>
                     </TableCell>
                     <TableCell className="text-sm">{movement.reason}</TableCell>
                     <TableCell className="text-sm">{movement.performedBy}</TableCell>
-                  </TableRow>
-                ))}
+                  </TableRow>)}
               </TableBody>
             </Table>
           </div>
         </DialogContent>
       </Dialog>
-    </div>
-  );
+    </div>;
 }
