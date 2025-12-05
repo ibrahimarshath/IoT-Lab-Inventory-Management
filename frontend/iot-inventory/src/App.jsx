@@ -77,10 +77,6 @@ export default function App() {
     label: "Borrow & Return",
     icon: ArrowLeftRight
   }, {
-    id: "borrow-requests",
-    label: "Borrow Requests",
-    icon: ClipboardList
-  }, {
     id: "inventory",
     label: "Inventory",
     icon: Boxes
@@ -114,8 +110,7 @@ export default function App() {
         return <Dashboard onNavigate={view => setCurrentView(view === "requests" ? "borrow-requests" : view)} />;
       case "borrowing":
         return <BorrowingManagement />;
-      case "borrow-requests":
-        return <BorrowRequests adminUsername={username} />;
+
       case "inventory":
         return <Inventory />;
       case "smartlab":
