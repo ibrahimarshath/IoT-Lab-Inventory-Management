@@ -46,22 +46,41 @@ export function Cart({
     }
     setIsSubmitDialogOpen(true);
   };
-  const confirmSubmit = () => {
-    // Here you would typically send the request to backend
-    console.log('Submitting borrow request:', {
-      username,
-      items: cart,
-      purpose,
-      expectedReturn,
-      submittedAt: new Date()
-    });
-
-    // Clear cart and form
-    setCart([]);
-    setPurpose('');
-    setExpectedReturn(undefined);
-    setIsSubmitDialogOpen(false);
-    toast.success('Borrow request submitted successfully!');
+  const confirmSubmit = async () => {
+    try {
+      const token = sessionStorage.getItem('token');
+      const requests = cart.map(item => ({
+        componentId: item.component.id,
+        quantity: item.quantity,
+        expectedReturnDate: expectedReturn.toISOString(),
+        purpose: purpose
+      }));
+      const promises = requests.map(request =>
+        fetch('/api/borrow-requests', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}` 
+          },
+          body: JSON.stringify(request)
+        })
+      );
+      const responses = await Promise.all(promises);
+      const failed = responses.some(r => !r.ok);
+      if (failed) {
+        const failedResponse = responses.find(r => !r.ok);
+        const errorData = await failedResponse.json();
+        throw new Error(errorData.message || 'Failed to submit some requests');
+      }
+      setCart([]);
+      setPurpose('');
+      setExpectedReturn(undefined);
+      setIsSubmitDialogOpen(false);
+      toast.success('Borrow request submitted successfully!');
+    } catch (error) {
+      console.error('Error submitting borrow request:', error);
+      toast.error(error.message || 'Failed to submit borrow request');
+    }
   };
   const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
   return <div>
@@ -230,3 +249,4 @@ export function Cart({
       </Dialog>
     </div>;
 }
+
