@@ -8,12 +8,24 @@ import { toast } from 'sonner';
 
 export function BulkComponentUpload({ open, onOpenChange, onSuccess }) {
     const [components, setComponents] = useState([
-        { id: 1, name: '', category: '', condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '', isCustomTag: false },
-        { id: 2, name: '', category: '', condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '', isCustomTag: false },
-        { id: 3, name: '', category: '', condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '', isCustomTag: false },
-        { id: 4, name: '', category: '', condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '', isCustomTag: false },
-        { id: 5, name: '', category: '', condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '', isCustomTag: false },
+        { id: 1, name: '', category: '', condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '', isCustomCategory: false, isCustomTag: false },
+        { id: 2, name: '', category: '', condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '', isCustomCategory: false, isCustomTag: false },
+        { id: 3, name: '', category: '', condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '', isCustomCategory: false, isCustomTag: false },
+        { id: 4, name: '', category: '', condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '', isCustomCategory: false, isCustomTag: false },
+        { id: 5, name: '', category: '', condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '', isCustomCategory: false, isCustomTag: false },
     ]);
+
+    const commonCategories = [
+        "Microcontroller",
+        "Sensor",
+        "Single Board Computer",
+        "Actuator",
+        "Power",
+        "Display",
+        "Communication",
+        "Shield",
+        "Tool"
+    ];
 
     const commonTags = [
         "Microcontroller",
@@ -23,8 +35,7 @@ export function BulkComponentUpload({ open, onOpenChange, onSuccess }) {
         "Display",
         "Motor",
         "Shield",
-        "Tool",
-        "Other"
+        "Tool"
     ];
 
     const conditions = [
@@ -39,8 +50,15 @@ export function BulkComponentUpload({ open, onOpenChange, onSuccess }) {
         setComponents(components.map(comp => {
             if (comp.id !== id) return comp;
 
+            if (field === 'category') {
+                if (value === 'new_custom') {
+                    return { ...comp, category: '', isCustomCategory: true };
+                }
+                return { ...comp, category: value, isCustomCategory: false };
+            }
+
             if (field === 'tags') {
-                if (value === 'Other') {
+                if (value === 'new_custom') {
                     return { ...comp, tags: '', isCustomTag: true };
                 }
                 return { ...comp, tags: value, isCustomTag: false };
@@ -50,10 +68,17 @@ export function BulkComponentUpload({ open, onOpenChange, onSuccess }) {
         }));
     };
 
-    const toggleCustomTag = (id, isCustom) => {
-        setComponents(components.map(comp =>
-            comp.id === id ? { ...comp, isCustomTag: isCustom, tags: '' } : comp
-        ));
+    const toggleCustomField = (id, field, isCustom) => {
+        setComponents(components.map(comp => {
+            if (comp.id !== id) return comp;
+            if (field === 'category') {
+                return { ...comp, isCustomCategory: isCustom, category: '' };
+            }
+            if (field === 'tags') {
+                return { ...comp, isCustomTag: isCustom, tags: '' };
+            }
+            return comp;
+        }));
     };
 
     const addRow = () => {
@@ -69,6 +94,7 @@ export function BulkComponentUpload({ open, onOpenChange, onSuccess }) {
             description: '',
             datasheet: '',
             tags: '',
+            isCustomCategory: false,
             isCustomTag: false
         }]);
     };
@@ -141,11 +167,11 @@ export function BulkComponentUpload({ open, onOpenChange, onSuccess }) {
 
             // Reset form
             setComponents([
-                { id: 1, name: '', category: '', condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '', isCustomTag: false },
-                { id: 2, name: '', category: '', condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '', isCustomTag: false },
-                { id: 3, name: '', category: '', condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '', isCustomTag: false },
-                { id: 4, name: '', category: '', condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '', isCustomTag: false },
-                { id: 5, name: '', category: '', condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '', isCustomTag: false },
+                { id: 1, name: '', category: '', condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '', isCustomCategory: false, isCustomTag: false },
+                { id: 2, name: '', category: '', condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '', isCustomCategory: false, isCustomTag: false },
+                { id: 3, name: '', category: '', condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '', isCustomCategory: false, isCustomTag: false },
+                { id: 4, name: '', category: '', condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '', isCustomCategory: false, isCustomTag: false },
+                { id: 5, name: '', category: '', condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '', isCustomCategory: false, isCustomTag: false },
             ]);
 
             if (onSuccess) onSuccess();
@@ -158,11 +184,11 @@ export function BulkComponentUpload({ open, onOpenChange, onSuccess }) {
 
     const handleCancel = () => {
         setComponents([
-            { id: 1, name: '', category: '', condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '', isCustomTag: false },
-            { id: 2, name: '', category: '', condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '', isCustomTag: false },
-            { id: 3, name: '', category: '', condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '', isCustomTag: false },
-            { id: 4, name: '', category: '', condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '', isCustomTag: false },
-            { id: 5, name: '', category: '', condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '', isCustomTag: false },
+            { id: 1, name: '', category: '', condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '', isCustomCategory: false, isCustomTag: false },
+            { id: 2, name: '', category: '', condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '', isCustomCategory: false, isCustomTag: false },
+            { id: 3, name: '', category: '', condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '', isCustomCategory: false, isCustomTag: false },
+            { id: 4, name: '', category: '', condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '', isCustomCategory: false, isCustomTag: false },
+            { id: 5, name: '', category: '', condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '', isCustomCategory: false, isCustomTag: false },
         ]);
         onOpenChange(false);
     };
@@ -205,10 +231,10 @@ export function BulkComponentUpload({ open, onOpenChange, onSuccess }) {
                                 <th className="px-2 py-2 text-left font-semibold text-gray-700 border border-gray-300 min-w-[160px]">
                                     Purchase Date
                                 </th>
-                                <th className="px-2 py-2 text-left font-semibold text-gray-700 border border-gray-300 min-w-[150px]">
+                                <th className="px-2 py-2 text-left font-semibold text-gray-700 border border-gray-300 min-w-[300px]">
                                     Description
                                 </th>
-                                <th className="px-2 py-2 text-left font-semibold text-gray-700 border border-gray-300 min-w-[200px]">
+                                <th className="px-2 py-2 text-left font-semibold text-gray-700 border border-gray-300 min-w-[150px]">
                                     Datasheet URL
                                 </th>
                                 <th className="px-2 py-2 text-left font-semibold text-gray-700 border border-gray-300 min-w-[200px]">
@@ -234,12 +260,43 @@ export function BulkComponentUpload({ open, onOpenChange, onSuccess }) {
                                         />
                                     </td>
                                     <td className="p-0 border border-gray-300 bg-white group-hover:bg-gray-50">
-                                        <Input
-                                            value={comp.category}
-                                            onChange={(e) => handleCellChange(comp.id, 'category', e.target.value)}
-                                            placeholder="Type category..."
-                                            className="h-9 border-0 rounded-none shadow-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-blue-500 px-2"
-                                        />
+                                        {comp.isCustomCategory ? (
+                                            <div className="flex h-9">
+                                                <Input
+                                                    value={comp.category}
+                                                    onChange={(e) => handleCellChange(comp.id, 'category', e.target.value)}
+                                                    placeholder="Type category..."
+                                                    className="h-full border-0 rounded-none shadow-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-blue-500 px-2 flex-1"
+                                                    autoFocus
+                                                />
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="h-full w-9 shrink-0 rounded-none hover:bg-gray-100"
+                                                    onClick={() => toggleCustomField(comp.id, 'category', false)}
+                                                    title="Back to list"
+                                                >
+                                                    <X className="w-4 h-4" />
+                                                </Button>
+                                            </div>
+                                        ) : (
+                                            <Select
+                                                value={comp.category}
+                                                onValueChange={(value) => handleCellChange(comp.id, 'category', value)}
+                                            >
+                                                <SelectTrigger className="h-9 border-0 rounded-none shadow-none focus:ring-1 focus:ring-inset focus:ring-blue-500 px-2">
+                                                    <SelectValue placeholder="Select category" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {commonCategories.map(cat => (
+                                                        <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                                                    ))}
+                                                    <SelectItem value="new_custom" className="text-blue-600 font-medium">
+                                                        + Add New Category
+                                                    </SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        )}
                                     </td>
                                     <td className="p-0 border border-gray-300 bg-white group-hover:bg-gray-50">
                                         <Select
@@ -314,7 +371,7 @@ export function BulkComponentUpload({ open, onOpenChange, onSuccess }) {
                                                     variant="ghost"
                                                     size="icon"
                                                     className="h-full w-9 shrink-0 rounded-none hover:bg-gray-100"
-                                                    onClick={() => toggleCustomTag(comp.id, false)}
+                                                    onClick={() => toggleCustomField(comp.id, 'tags', false)}
                                                     title="Back to list"
                                                 >
                                                     <X className="w-4 h-4" />
@@ -332,6 +389,9 @@ export function BulkComponentUpload({ open, onOpenChange, onSuccess }) {
                                                     {commonTags.map(tag => (
                                                         <SelectItem key={tag} value={tag}>{tag}</SelectItem>
                                                     ))}
+                                                    <SelectItem value="new_custom" className="text-blue-600 font-medium">
+                                                        + Add New Tag
+                                                    </SelectItem>
                                                 </SelectContent>
                                             </Select>
                                         )}
