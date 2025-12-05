@@ -1,71 +1,80 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent } from './ui/card';
 import { Badge } from './ui/badge';
 import { Input } from './ui/input';
 import { Calendar, Package, Search, CheckCircle } from 'lucide-react';
+
 export function UserBorrowings() {
+  const [borrowings, setBorrowings] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState('all');
-  const borrowings = [{
-    id: '1',
-    component: 'Arduino Uno R3',
-    quantity: 2,
-    borrowDate: '2024-11-20',
-    expectedReturnDate: '2024-12-05',
-    status: 'active',
-    daysRemaining: 7
-  }, {
-    id: '2',
-    component: 'ESP32 DevKit V1',
-    quantity: 1,
-    borrowDate: '2024-11-15',
-    expectedReturnDate: '2024-11-25',
-    status: 'overdue',
-    daysRemaining: -3
-  }, {
-    id: '3',
-    component: 'Ultrasonic Sensor HC-SR04',
-    quantity: 3,
-    borrowDate: '2024-11-22',
-    expectedReturnDate: '2024-12-10',
-    status: 'active',
-    daysRemaining: 12
-  }, {
-    id: '4',
-    component: 'Servo Motor SG90',
-    quantity: 2,
-    borrowDate: '2024-11-18',
-    expectedReturnDate: '2024-12-02',
-    status: 'active',
-    daysRemaining: 4
-  }, {
-    id: '5',
-    component: 'Raspberry Pi 4 (4GB)',
-    quantity: 1,
-    borrowDate: '2024-11-10',
-    expectedReturnDate: '2024-11-20',
-    actualReturnDate: '2024-11-19',
-    status: 'returned',
-    daysRemaining: 0
-  }, {
-    id: '6',
-    component: 'DHT22 Temperature Sensor',
-    quantity: 2,
-    borrowDate: '2024-11-05',
-    expectedReturnDate: '2024-11-15',
-    actualReturnDate: '2024-11-16',
-    status: 'returned',
-    daysRemaining: 0
-  }];
+
+  useEffect(() => {
+    fetchUserBorrowings();
+  }, []);
+
+  const fetchUserBorrowings = async () => {
+    try {
+      const token = sessionStorage.getItem('token');
+      const user = JSON.parse(sessionStorage.getItem('user'));
+
+      const response = await fetch('/api/borrowings', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (!response.ok) throw new Error('Failed to fetch borrowings');
+
+      const allBorrowings = await response.json();
+      // Filter to only show current user's borrowings
+      const userBorrowings = allBorrowings.filter(b => b.userEmail === user.email);
+
+      // Calculate days remaining for each
+      const enrichedBorrowings = userBorrowings.map(b => {
+        const dueDate = new Date(b.expectedReturnDate);
+        const today = new Date();
+        const diffTime = dueDate - today;
+        const daysRemaining = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        return {
+          ...b,
+          daysRemaining,
+          component: b.componentName
+        };
+      });
+
+      setBorrowings(enrichedBorrowings);
+    } catch (error) {
+      console.error('Error fetching borrowings:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const filteredBorrowings = borrowings.filter(b => {
     const matchesSearch = b.component.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesFilter = filterType === 'all' || b.status === filterType;
     return matchesSearch && matchesFilter;
   });
+
   const activeBorrowings = borrowings.filter(b => b.status === 'active');
-  const overdueBorrowings = borrowings.filter(b => b.status === 'overdue');
+  const overdueBorrowings = borrowings.filter(b =>
+    b.status === 'active' && new Date(b.expectedReturnDate) < new Date()
+  );
   const returnedBorrowings = borrowings.filter(b => b.status === 'returned');
-  return <div className="space-y-6">
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="text-center py-12">
+          <p className="text-gray-500">Loading your borrowings...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
       <div>
         <h2 className="text-gray-900 mb-2">My Borrowings</h2>
         <p className="text-gray-600">Track all your borrowed components</p>
@@ -138,72 +147,103 @@ export function UserBorrowings() {
 
       {/* Borrowings List */}
       <div className="space-y-4">
-        {filteredBorrowings.map(borrowing => <Card key={borrowing.id} className="border-l-4" style={{
-        borderLeftColor: borrowing.status === 'overdue' ? '#ef4444' : borrowing.status === 'returned' ? '#a855f7' : '#3b82f6'
-      }}>
-            <CardContent className="p-6">
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <h3 className="text-gray-900">{borrowing.component}</h3>
-                    <Badge variant={borrowing.status === 'overdue' ? 'destructive' : 'default'} className={borrowing.status === 'returned' ? 'bg-purple-500' : borrowing.status === 'active' ? 'bg-green-500' : ''}>
-                      {borrowing.status === 'overdue' && 'Overdue'}
-                      {borrowing.status === 'active' && 'Active'}
-                      {borrowing.status === 'returned' && <span className="flex items-center gap-1">
-                          <CheckCircle className="w-3 h-3" />
-                          Returned
-                        </span>}
-                    </Badge>
-                  </div>
-                  <p className="text-sm text-gray-600">
-                    Quantity: {borrowing.quantity}
-                  </p>
-                </div>
-                {borrowing.status !== 'returned' && <div className={`text-right ${borrowing.status === 'overdue' ? 'text-red-600' : 'text-blue-600'}`}>
-                    <p className="text-sm">
-                      {borrowing.status === 'overdue' ? `${Math.abs(borrowing.daysRemaining)} days overdue` : `${borrowing.daysRemaining} days remaining`}
-                    </p>
-                  </div>}
-              </div>
+        {filteredBorrowings.map(borrowing => {
+          const isOverdue = borrowing.status === 'active' && new Date(borrowing.expectedReturnDate) < new Date();
+          const displayStatus = isOverdue ? 'overdue' : borrowing.status;
 
-              <div className={`grid ${borrowing.status === 'returned' ? 'grid-cols-3' : 'grid-cols-2'} gap-4 text-sm`}>
-                <div>
-                  <p className="text-gray-500 mb-1 flex items-center gap-1">
-                    <Calendar className="w-3 h-3" />
-                    Borrowed
-                  </p>
-                  <p className="text-gray-900">
-                    {new Date(borrowing.borrowDate).toLocaleDateString()}
-                  </p>
+          return (
+            <Card
+              key={borrowing.id}
+              className="border-l-4"
+              style={{
+                borderLeftColor: displayStatus === 'overdue' ? '#ef4444' : displayStatus === 'returned' ? '#a855f7' : '#3b82f6'
+              }}
+            >
+              <CardContent className="p-6">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <h3 className="text-gray-900">{borrowing.component}</h3>
+                      <Badge
+                        variant={displayStatus === 'overdue' ? 'destructive' : 'default'}
+                        className={displayStatus === 'returned' ? 'bg-purple-500' : displayStatus === 'active' ? 'bg-green-500' : ''}
+                      >
+                        {displayStatus === 'overdue' && 'Overdue'}
+                        {displayStatus === 'active' && 'Active'}
+                        {displayStatus === 'returned' && (
+                          <span className="flex items-center gap-1">
+                            <CheckCircle className="w-3 h-3" />
+                            Returned
+                          </span>
+                        )}
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-gray-600">
+                      Quantity: {borrowing.quantity}
+                    </p>
+                  </div>
+                  {borrowing.status !== 'returned' && (
+                    <div className={`text-right ${isOverdue ? 'text-red-600' : 'text-blue-600'}`}>
+                      <p className="text-sm">
+                        {isOverdue
+                          ? `${Math.abs(borrowing.daysRemaining)} days overdue`
+                          : `${borrowing.daysRemaining} days remaining`
+                        }
+                      </p>
+                    </div>
+                  )}
                 </div>
-                <div>
-                  <p className="text-gray-500 mb-1 flex items-center gap-1">
-                    <Calendar className="w-3 h-3" />
-                    Expected Return
-                  </p>
-                  <p className="text-gray-900">
-                    {new Date(borrowing.expectedReturnDate).toLocaleDateString()}
-                  </p>
-                </div>
-                {borrowing.status === 'returned' && borrowing.actualReturnDate && <div>
+
+                <div className={`grid ${borrowing.status === 'returned' ? 'grid-cols-3' : 'grid-cols-2'} gap-4 text-sm`}>
+                  <div>
                     <p className="text-gray-500 mb-1 flex items-center gap-1">
-                      <CheckCircle className="w-3 h-3" />
-                      Actual Return
+                      <Calendar className="w-3 h-3" />
+                      Borrowed
                     </p>
                     <p className="text-gray-900">
-                      {new Date(borrowing.actualReturnDate).toLocaleDateString()}
+                      {new Date(borrowing.borrowDate).toLocaleDateString()}
                     </p>
-                  </div>}
-              </div>
-            </CardContent>
-          </Card>)}
+                  </div>
+                  <div>
+                    <p className="text-gray-500 mb-1 flex items-center gap-1">
+                      <Calendar className="w-3 h-3" />
+                      Expected Return
+                    </p>
+                    <p className="text-gray-900">
+                      {new Date(borrowing.expectedReturnDate).toLocaleDateString()}
+                    </p>
+                  </div>
+                  {borrowing.status === 'returned' && borrowing.actualReturnDate && (
+                    <div>
+                      <p className="text-gray-500 mb-1 flex items-center gap-1">
+                        <CheckCircle className="w-3 h-3" />
+                        Actual Return
+                      </p>
+                      <p className="text-gray-900">
+                        {new Date(borrowing.actualReturnDate).toLocaleDateString()}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
 
-        {filteredBorrowings.length === 0 && <div className="text-center py-12">
+        {filteredBorrowings.length === 0 && (
+          <div className="text-center py-12">
             <Package className="w-12 h-12 text-gray-300 mx-auto mb-3" />
             <p className="text-gray-500">
-              {searchQuery ? 'No borrowings found' : filterType === 'all' ? 'No borrowings yet' : `No ${filterType} borrowings`}
+              {searchQuery
+                ? 'No borrowings found'
+                : filterType === 'all'
+                  ? 'No borrowings yet. Visit the Components page to borrow items!'
+                  : `No ${filterType} borrowings`
+              }
             </p>
-          </div>}
+          </div>
+        )}
       </div>
-    </div>;
+    </div>
+  );
 }
