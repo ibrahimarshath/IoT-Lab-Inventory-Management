@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 import { Switch } from './ui/switch';
-import { Package, Search, Plus, Upload, Eye, EyeOff, Edit, Trash2, Filter, LayoutGrid, List, ExternalLink } from 'lucide-react';
+import { Package, Search, Plus, Upload, Eye, EyeOff, Edit, Trash2, Filter, LayoutGrid, List, ExternalLink, X } from 'lucide-react';
 import { BulkComponentUpload } from './BulkComponentUpload';
 import { toast } from 'sonner';
 
@@ -46,6 +46,7 @@ export function Inventory() {
     purchaseDate: '',
     condition: 'New',
     tags: '',
+    isCustomTag: false,
     visibleToUsers: true
   });
 
@@ -122,6 +123,7 @@ export function Inventory() {
       purchaseDate: '',
       condition: 'New',
       tags: '',
+      isCustomTag: false,
       visibleToUsers: true
     });
     setEditingComponent(null);
@@ -246,6 +248,7 @@ export function Inventory() {
       purchaseDate: component.purchaseDate ? new Date(component.purchaseDate).toISOString().split('T')[0] : '',
       condition: component.condition,
       tags: (component.tags || []).join(', '),
+      isCustomTag: (component.tags || []).length > 1,
       visibleToUsers: component.visibleToUsers !== false
     });
     setIsEditDialogOpen(true);
@@ -827,7 +830,7 @@ export function Inventory() {
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="tags">Tags (comma-separated)</Label>
+              <Label htmlFor="tags">Tags</Label>
               <Input
                 id="tags"
                 value={formData.tags}

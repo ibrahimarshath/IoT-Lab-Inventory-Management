@@ -31,14 +31,16 @@ export function BulkComponentUpload({ open, onOpenChange, onSuccess, existingCat
                 if (value === 'new_custom') {
                     return { ...comp, category: '', isCustomCategory: true };
                 }
-                return { ...comp, category: value, isCustomCategory: false };
+                // If currently custom, stay custom. Otherwise (dropdown selection), turn off custom.
+                return { ...comp, category: value, isCustomCategory: comp.isCustomCategory };
             }
 
             if (field === 'tags') {
                 if (value === 'new_custom') {
                     return { ...comp, tags: '', isCustomTag: true };
                 }
-                return { ...comp, tags: value, isCustomTag: false };
+                // If currently custom, stay custom. Otherwise (dropdown selection), turn off custom.
+                return { ...comp, tags: value, isCustomTag: comp.isCustomTag };
             }
 
             return { ...comp, [field]: value };
@@ -173,7 +175,8 @@ export function BulkComponentUpload({ open, onOpenChange, onSuccess, existingCat
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent
-                className="sm:max-w-[95vw] w-[95vw] h-[90vh] flex flex-col p-0 bg-white gap-0 overflow-hidden"
+                className="sm:max-w-[95vw] w-[95vw] p-0 bg-white gap-0 overflow-hidden"
+                style={{ height: '80vh', display: 'flex', flexDirection: 'column' }}
                 onPointerDownOutside={(e) => e.preventDefault()}
             >
                 {/* Header */}
@@ -188,7 +191,7 @@ export function BulkComponentUpload({ open, onOpenChange, onSuccess, existingCat
                 </div>
 
                 {/* Scrollable Table Content */}
-                <div className="flex-1 overflow-auto min-h-0 bg-white">
+                <div className="flex-1 overflow-auto min-h-0 bg-white" style={{ overflowY: 'auto' }}>
                     <table className="w-full border-collapse text-sm">
                         <thead className="sticky top-0 bg-gray-100 z-20 shadow-sm">
                             <tr>
