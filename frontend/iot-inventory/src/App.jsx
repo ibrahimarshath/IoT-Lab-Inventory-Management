@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dashboard } from "./components/Dashboard";
 import { ComponentsManagement } from "./components/ComponentsManagement";
 import { BorrowingManagement } from "./components/BorrowingManagement";
@@ -13,7 +13,9 @@ import { Profile } from "./components/Profile";
 import { Login } from "./components/Login";
 import { Button } from "./components/ui/button";
 import { Toaster } from "./components/ui/sonner";
-import { LayoutDashboard, Package, ArrowLeftRight, ShoppingCart, Lightbulb, Activity, Search, LogOut, ClipboardList, Boxes } from "lucide-react";
+import { Users } from "./components/Users";
+import { LayoutDashboard, Package, ArrowLeftRight, ShoppingCart, Lightbulb, Activity, Search, LogOut, ClipboardList, Boxes, Users as UsersIcon } from "lucide-react";
+
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [mode, setMode] = useState("user");
@@ -22,6 +24,26 @@ export default function App() {
   const [currentUserView, setCurrentUserView] = useState("search");
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [cart, setCart] = useState([]);
+
+  // Check for existing session on mount
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const user = localStorage.getItem('user');
+
+    if (token && user) {
+      try {
+        const userData = JSON.parse(user);
+        setUsername(userData.name);
+        setMode(userData.role.toLowerCase());
+        setIsLoggedIn(true);
+      } catch (error) {
+        console.error('Error parsing user data:', error);
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+      }
+    }
+  }, []);
+
   const handleLogin = (loginMode, loginUsername) => {
     setMode(loginMode);
     setUsername(loginUsername);
@@ -32,16 +54,21 @@ export default function App() {
       setCurrentUserView("search");
     }
   };
+
   const handleLogout = () => {
     setIsLoggedIn(false);
     setUsername("");
     setMode("user");
     setCurrentView("dashboard");
     setCurrentUserView("search");
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
   };
+
   if (!isLoggedIn) {
     return <Login onLogin={handleLogin} />;
   }
+
   const adminNavigation = [{
     id: "dashboard",
     label: "Dashboard",
@@ -70,7 +97,12 @@ export default function App() {
     id: "logs",
     label: "Activity Logs",
     icon: Activity
+  }, {
+    id: "users",
+    label: "Users",
+    icon: UsersIcon
   }];
+
   const userNavigation = [{
     id: "search",
     label: "Browse Components",
@@ -80,6 +112,7 @@ export default function App() {
     label: "My Borrowings",
     icon: Package
   }];
+
   const renderAdminView = () => {
     switch (currentView) {
       case "dashboard":
@@ -96,12 +129,15 @@ export default function App() {
         return <SmartLabControl />;
       case "logs":
         return <ActivityLogs />;
+      case "users":
+        return <Users />;
       case "profile":
         return <Profile mode="admin" username={username} />;
       default:
         return <Dashboard onNavigate={view => setCurrentView(view === "requests" ? "borrow-requests" : view)} />;
     }
   };
+
   const renderUserView = () => {
     switch (currentUserView) {
       case "search":
@@ -116,13 +152,17 @@ export default function App() {
         return <UserComponentSearch cart={cart} setCart={setCart} />;
     }
   };
+
   const totalCartItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-  return <div className="flex h-screen bg-gray-50">
+
+  return (
+    <div className="flex h-screen bg-gray-50">
       <Toaster />
       {/* Sidebar */}
       <aside className={`bg-white border-r border-gray-200 flex flex-col transition-all duration-300 ease-in-out overflow-hidden ${sidebarOpen ? "w-64" : "w-16"}`}>
         <div className={`p-4 border-b border-gray-200 ${sidebarOpen ? "" : "px-3"}`}>
-          {sidebarOpen ? <>
+          {sidebarOpen ? (
+            <>
               <div className="flex items-center gap-2 mb-2">
                 <div className="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center shadow-sm">
                   <Lightbulb className="w-6 h-6 text-white" />
@@ -132,34 +172,42 @@ export default function App() {
               <p className="text-sm text-gray-600 mt-1">
                 {mode === "admin" ? "Admin Portal" : "User Portal"}
               </p>
-            </> : <div className="flex justify-center">
+            </>
+          ) : (
+            <div className="flex justify-center">
               <div className="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center shadow-sm">
                 <Lightbulb className="w-6 h-6 text-white" />
               </div>
-            </div>}
+            </div>
+          )}
         </div>
 
         <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
           {mode === "admin" ? adminNavigation.map(item => {
-          const Icon = item.icon;
-          const isActive = currentView === item.id;
-          return <button key={item.id} onClick={() => setCurrentView(item.id)} title={!sidebarOpen ? item.label : ""} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive ? "bg-blue-50 text-blue-700 border border-blue-200" : "text-gray-700 hover:bg-gray-100 border border-transparent"} ${!sidebarOpen ? "justify-center px-2" : ""}`}>
-                    <Icon className="w-5 h-5 flex-shrink-0" />
-                    {sidebarOpen && <span>{item.label}</span>}
-                  </button>;
-        }) : userNavigation.map(item => {
-          const Icon = item.icon;
-          const isActive = currentUserView === item.id;
-          return <button key={item.id} onClick={() => setCurrentUserView(item.id)} title={!sidebarOpen ? item.label : ""} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive ? "bg-blue-50 text-blue-700 border border-blue-200" : "text-gray-700 hover:bg-gray-100 border border-transparent"} ${!sidebarOpen ? "justify-center px-2" : ""}`}>
-                    <Icon className="w-5 h-5 flex-shrink-0" />
-                    {sidebarOpen && <span>{item.label}</span>}
-                  </button>;
-        })}
+            const Icon = item.icon;
+            const isActive = currentView === item.id;
+            return (
+              <button key={item.id} onClick={() => setCurrentView(item.id)} title={!sidebarOpen ? item.label : ""} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive ? "bg-blue-50 text-blue-700 border border-blue-200" : "text-gray-700 hover:bg-gray-100 border border-transparent"} ${!sidebarOpen ? "justify-center px-2" : ""}`}>
+                <Icon className="w-5 h-5 flex-shrink-0" />
+                {sidebarOpen && <span>{item.label}</span>}
+              </button>
+            );
+          }) : userNavigation.map(item => {
+            const Icon = item.icon;
+            const isActive = currentUserView === item.id;
+            return (
+              <button key={item.id} onClick={() => setCurrentUserView(item.id)} title={!sidebarOpen ? item.label : ""} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive ? "bg-blue-50 text-blue-700 border border-blue-200" : "text-gray-700 hover:bg-gray-100 border border-transparent"} ${!sidebarOpen ? "justify-center px-2" : ""}`}>
+                <Icon className="w-5 h-5 flex-shrink-0" />
+                {sidebarOpen && <span>{item.label}</span>}
+              </button>
+            );
+          })}
         </nav>
 
         {/* User Info and Logout */}
         <div className={`p-4 border-t border-gray-200 space-y-3 ${!sidebarOpen ? "px-2" : ""}`}>
-          {sidebarOpen ? <>
+          {sidebarOpen ? (
+            <>
               <button onClick={() => mode === "admin" ? setCurrentView("profile") : setCurrentUserView("profile")} className="w-full flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors">
                 <div className={`w-9 h-9 rounded-full flex items-center justify-center ${mode === "admin" ? "bg-purple-600 text-white" : "bg-blue-600 text-white"}`}>
                   {username.charAt(0).toUpperCase()}
@@ -178,9 +226,12 @@ export default function App() {
                 <LogOut className="w-4 h-4" />
                 Logout
               </Button>
-            </> : <button onClick={handleLogout} title="Logout" className="w-full flex justify-center p-2 hover:bg-red-50 rounded-lg transition-colors">
+            </>
+          ) : (
+            <button onClick={handleLogout} title="Logout" className="w-full flex justify-center p-2 hover:bg-red-50 rounded-lg transition-colors">
               <LogOut className="w-5 h-5 text-red-600" />
-            </button>}
+            </button>
+          )}
         </div>
       </aside>
 
@@ -205,11 +256,11 @@ export default function App() {
           <div className="flex items-center gap-3">
             {/* Cart Badge - Only for users */}
             {mode === "user" && <button onClick={() => setCurrentUserView("cart")} className="relative p-2.5 hover:bg-gray-100 rounded-lg transition-colors" title="View Cart">
-                <ShoppingCart className="w-5 h-5 text-gray-700" />
-                {totalCartItems > 0 && <span className="absolute -top-1 -right-1 h-5 min-w-[20px] flex items-center justify-center px-1.5 bg-blue-600 text-white text-xs rounded-full">
-                    {totalCartItems}
-                  </span>}
-              </button>}
+              <ShoppingCart className="w-5 h-5 text-gray-700" />
+              {totalCartItems > 0 && <span className="absolute -top-1 -right-1 h-5 min-w-[20px] flex items-center justify-center px-1.5 bg-blue-600 text-white text-xs rounded-full">
+                {totalCartItems}
+              </span>}
+            </button>}
 
             {/* Profile Badge */}
             <button onClick={() => mode === "admin" ? setCurrentView("profile") : setCurrentUserView("profile")} className="flex items-center gap-3 px-4 py-2 hover:bg-gray-50 rounded-lg transition-colors border border-gray-200">
@@ -233,5 +284,6 @@ export default function App() {
           {mode === "admin" ? renderAdminView() : renderUserView()}
         </div>
       </main>
-    </div>;
+    </div>
+  );
 }

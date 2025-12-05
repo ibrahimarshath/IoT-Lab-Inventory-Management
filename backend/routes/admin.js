@@ -13,7 +13,7 @@ router.get('/users', auth, async (req, res) => {
             return res.status(403).json({ message: 'Access denied: Admin only' });
         }
 
-        const users = await User.find().select('-password');
+        const users = await User.find({ role: 'user' }).select('-password');
         res.json(users);
     } catch (err) {
         console.error(err);
@@ -134,6 +134,35 @@ router.delete('/users/:id', auth, async (req, res) => {
         await User.findByIdAndDelete(req.params.id);
 
         res.json({ message: 'User deleted successfully' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+const Borrowing = require('../models/Borrowing');
+
+// @route   GET /api/admin/users/:id/details
+// @desc    Get user details and borrowing history
+// @access  Admin only
+router.get('/users/:id/details', auth, async (req, res) => {
+    try {
+        // Check if user is admin
+        if (req.user.role !== 'admin') {
+            return res.status(403).json({ message: 'Access denied: Admin only' });
+        }
+
+        const user = await User.findById(req.params.id).select('-password');
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const history = await Borrowing.find({ user: req.params.id }).sort({ borrowDate: -1 });
+
+        res.json({
+            user,
+            history
+        });
     } catch (err) {
         console.error(err);
         res.status(500).json({ message: 'Server error' });

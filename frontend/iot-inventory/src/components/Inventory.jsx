@@ -8,14 +8,18 @@ import { Label } from './ui/label';
 import { Input } from './ui/input';
 import { Textarea } from './ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { Package, TrendingUp, TrendingDown, AlertTriangle, Download, Plus, Minus, Search, History } from 'lucide-react';
+import { Package, TrendingUp, TrendingDown, AlertTriangle, Download, Plus, Minus, Search, History, Upload } from 'lucide-react';
+import { BulkComponentUpload } from './BulkComponentUpload';
+
 export function Inventory() {
   const [isAdjustDialogOpen, setIsAdjustDialogOpen] = useState(false);
   const [isMovementHistoryOpen, setIsMovementHistoryOpen] = useState(false);
+  const [isBulkUploadOpen, setIsBulkUploadOpen] = useState(false);
   const [selectedComponent, setSelectedComponent] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterCategory, setFilterCategory] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
+
   const inventoryItems = [{
     id: '1',
     name: 'Arduino Uno R3',
@@ -149,6 +153,7 @@ export function Inventory() {
     lastUpdated: '2024-12-01',
     value: 176
   }];
+
   const stockMovements = [{
     id: '1',
     componentName: 'Arduino Uno R3',
@@ -195,6 +200,7 @@ export function Inventory() {
     date: '2024-12-01',
     notes: 'Borrowed for circuit assembly'
   }];
+
   const getStockStatus = item => {
     if (item.quantity < item.threshold) {
       return {
@@ -213,27 +219,35 @@ export function Inventory() {
       };
     }
   };
+
   const filteredItems = inventoryItems.filter(item => {
     const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) || item.category.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = filterCategory === 'all' || item.category === filterCategory;
     const matchesStatus = filterStatus === 'all' || filterStatus === 'low' && item.quantity < item.threshold || filterStatus === 'available' && item.quantity >= item.threshold;
     return matchesSearch && matchesCategory && matchesStatus;
   });
+
   const totalItems = inventoryItems.reduce((sum, item) => sum + item.quantity, 0);
   const totalValue = inventoryItems.reduce((sum, item) => sum + item.value, 0);
   const lowStockItems = inventoryItems.filter(item => item.quantity < item.threshold).length;
   const totalBorrowed = inventoryItems.reduce((sum, item) => sum + item.borrowed, 0);
   const categories = Array.from(new Set(inventoryItems.map(item => item.category)));
-  return <div className="space-y-6">
+
+  return (
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-gray-900 mb-2">Inventory Management</h2>
-          <p className="text-gray-600">Track and manage all lab components and stock levels</p>
+          <h2 className="text-2xl font-bold text-gray-900">Inventory Management</h2>
+          <p className="text-gray-500 mt-1">Track and manage all lab components and stock levels</p>
         </div>
         <div className="flex gap-3">
           <Button variant="outline" className="gap-2" onClick={() => setIsMovementHistoryOpen(true)}>
             <History className="w-4 h-4" />
             Movement History
+          </Button>
+          <Button className="gap-2" onClick={() => setIsBulkUploadOpen(true)}>
+            <Upload className="w-4 h-4" />
+            Bulk Upload
           </Button>
           <Button variant="outline" className="gap-2">
             <Download className="w-4 h-4" />
@@ -242,70 +256,19 @@ export function Inventory() {
         </div>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 mb-1">Total Components</p>
-                <p className="text-3xl text-gray-900">{totalItems}</p>
-              </div>
-              <div className="bg-blue-50 text-blue-600 p-3 rounded-lg">
-                <Package className="w-6 h-6" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 mb-1">Total Value</p>
-                <p className="text-3xl text-gray-900">${totalValue}</p>
-              </div>
-              <div className="bg-green-50 text-green-600 p-3 rounded-lg">
-                <TrendingUp className="w-6 h-6" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 mb-1">Low Stock Items</p>
-                <p className="text-3xl text-gray-900">{lowStockItems}</p>
-              </div>
-              <div className="bg-red-50 text-red-600 p-3 rounded-lg">
-                <AlertTriangle className="w-6 h-6" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 mb-1">Currently Borrowed</p>
-                <p className="text-3xl text-gray-900">{totalBorrowed}</p>
-              </div>
-              <div className="bg-orange-50 text-orange-600 p-3 rounded-lg">
-                <TrendingDown className="w-6 h-6" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
       {/* Filters and Search */}
-      <Card>
+      <Card className="border-gray-100 shadow-sm">
         <CardContent className="p-6">
           <div className="flex flex-wrap gap-4">
             <div className="flex-1 min-w-[250px]">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <Input placeholder="Search components..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10" />
+                <Input
+                  placeholder="Search components..."
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  className="pl-10"
+                />
               </div>
             </div>
             <Select value={filterCategory} onValueChange={setFilterCategory}>
@@ -332,58 +295,68 @@ export function Inventory() {
       </Card>
 
       {/* Inventory Table */}
-      <Card>
+      <Card className="border-gray-100 shadow-sm">
         <CardHeader>
-          <CardTitle>Component Inventory</CardTitle>
+          <CardTitle className="text-xl font-bold">Component Inventory</CardTitle>
           <CardDescription>Complete overview of all components in the lab</CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
-              <TableRow>
-                <TableHead className="min-w-[180px]">Component</TableHead>
-                <TableHead className="w-[120px]">Location</TableHead>
-                <TableHead className="w-[100px]">Total Qty</TableHead>
-                <TableHead className="w-[100px]">Available</TableHead>
-                <TableHead className="w-[100px]">Borrowed</TableHead>
-                <TableHead className="w-[100px]">Threshold</TableHead>
-                <TableHead className="w-[100px]">Value</TableHead>
-                <TableHead className="w-[110px]">Status</TableHead>
-                <TableHead className="w-[140px]">Actions</TableHead>
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="w-[250px] font-semibold">Component</TableHead>
+                <TableHead className="font-semibold">Location</TableHead>
+                <TableHead className="font-semibold">Total Qty</TableHead>
+                <TableHead className="font-semibold">Available</TableHead>
+                <TableHead className="font-semibold">Borrowed</TableHead>
+                <TableHead className="font-semibold">Threshold</TableHead>
+                <TableHead className="font-semibold">Value</TableHead>
+                <TableHead className="font-semibold">Status</TableHead>
+                <TableHead className="text-right font-semibold">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredItems.map(item => {
-              const status = getStockStatus(item);
-              return <TableRow key={item.id}>
+                const status = getStockStatus(item);
+                return (
+                  <TableRow key={item.id} className="hover:bg-gray-50/50">
                     <TableCell>
                       <div>
-                        <p className="text-sm text-gray-900 break-words">{item.name}</p>
-                        <p className="text-xs text-gray-500">{item.category}</p>
+                        <p className="font-medium text-gray-900">{item.name}</p>
+                        <p className="text-sm text-gray-500">{item.category}</p>
                       </div>
                     </TableCell>
-                    <TableCell className="text-sm text-gray-600">{item.location}</TableCell>
-                    <TableCell className="text-sm text-gray-900">{item.quantity}</TableCell>
-                    <TableCell className="text-sm text-green-600">{item.available}</TableCell>
-                    <TableCell className="text-sm text-orange-600">{item.borrowed}</TableCell>
-                    <TableCell className="text-sm text-gray-600">{item.threshold}</TableCell>
-                    <TableCell className="text-sm text-gray-900">${item.value}</TableCell>
+                    <TableCell className="text-gray-600">{item.location}</TableCell>
+                    <TableCell className="font-medium">{item.quantity}</TableCell>
+                    <TableCell className="text-green-600 font-medium">{item.available}</TableCell>
+                    <TableCell className="text-orange-600 font-medium">{item.borrowed}</TableCell>
+                    <TableCell className="text-gray-600">{item.threshold}</TableCell>
+                    <TableCell className="font-medium">${item.value}</TableCell>
                     <TableCell>
-                      <Badge variant={item.quantity < item.threshold ? 'destructive' : 'default'} className={item.quantity < item.threshold ? '' : 'bg-green-500'}>
+                      <Badge
+                        variant={item.quantity < item.threshold ? 'destructive' : 'default'}
+                        className={`font-normal ${item.quantity < item.threshold ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'}`}
+                      >
                         {item.quantity < item.threshold && <AlertTriangle className="w-3 h-3 mr-1" />}
                         {status.label}
                       </Badge>
                     </TableCell>
-                    <TableCell>
-                      <Button size="sm" variant="outline" onClick={() => {
-                    setSelectedComponent(item);
-                    setIsAdjustDialogOpen(true);
-                  }}>
+                    <TableCell className="text-right">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-8"
+                        onClick={() => {
+                          setSelectedComponent(item);
+                          setIsAdjustDialogOpen(true);
+                        }}
+                      >
                         Adjust Stock
                       </Button>
                     </TableCell>
-                  </TableRow>;
-            })}
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </CardContent>
@@ -459,27 +432,34 @@ export function Inventory() {
               </TableHeader>
               <TableBody>
                 {stockMovements.map(movement => <TableRow key={movement.id}>
-                    <TableCell className="text-sm">{movement.date}</TableCell>
-                    <TableCell className="text-sm">{movement.componentName}</TableCell>
-                    <TableCell>
-                      <Badge variant={movement.type === 'in' ? 'default' : 'secondary'} className={movement.type === 'in' ? 'bg-green-500' : movement.type === 'out' ? 'bg-blue-500' : 'bg-orange-500'}>
-                        {movement.type === 'in' && <Plus className="w-3 h-3 mr-1" />}
-                        {movement.type === 'out' && <Minus className="w-3 h-3 mr-1" />}
-                        {movement.type === 'in' ? 'Stock In' : movement.type === 'out' ? 'Stock Out' : 'Adjustment'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-sm">
-                      <span className={movement.type === 'in' || movement.type === 'adjustment' && movement.quantity > 0 ? 'text-green-600' : 'text-red-600'}>
-                        {movement.quantity > 0 ? '+' : ''}{movement.quantity}
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-sm">{movement.reason}</TableCell>
-                    <TableCell className="text-sm">{movement.performedBy}</TableCell>
-                  </TableRow>)}
+                  <TableCell className="text-sm">{movement.date}</TableCell>
+                  <TableCell className="text-sm">{movement.componentName}</TableCell>
+                  <TableCell>
+                    <Badge variant={movement.type === 'in' ? 'default' : 'secondary'} className={movement.type === 'in' ? 'bg-green-500' : movement.type === 'out' ? 'bg-blue-500' : 'bg-orange-500'}>
+                      {movement.type === 'in' && <Plus className="w-3 h-3 mr-1" />}
+                      {movement.type === 'out' && <Minus className="w-3 h-3 mr-1" />}
+                      {movement.type === 'in' ? 'Stock In' : movement.type === 'out' ? 'Stock Out' : 'Adjustment'}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-sm">
+                    <span className={movement.type === 'in' || movement.type === 'adjustment' && movement.quantity > 0 ? 'text-green-600' : 'text-red-600'}>
+                      {movement.quantity > 0 ? '+' : ''}{movement.quantity}
+                    </span>
+                  </TableCell>
+                  <TableCell className="text-sm">{movement.reason}</TableCell>
+                  <TableCell className="text-sm">{movement.performedBy}</TableCell>
+                </TableRow>)}
               </TableBody>
             </Table>
           </div>
         </DialogContent>
       </Dialog>
-    </div>;
+
+      {/* Bulk Component Upload Dialog */}
+      <BulkComponentUpload
+        open={isBulkUploadOpen}
+        onOpenChange={setIsBulkUploadOpen}
+      />
+    </div>
+  );
 }

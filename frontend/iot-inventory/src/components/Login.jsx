@@ -42,6 +42,11 @@ export function Login({ onLogin }) {
 
       const userRole = data.user.role.toLowerCase();
 
+      // Prevent admins from logging into user portal
+      if (selectedMode === 'user' && userRole === 'admin') {
+        throw new Error('Admin accounts cannot login to the user portal. Please use the admin login.');
+      }
+
       if (selectedMode === 'admin' && userRole !== 'admin') {
         throw new Error('Access denied: You do not have administrator privileges');
       }
