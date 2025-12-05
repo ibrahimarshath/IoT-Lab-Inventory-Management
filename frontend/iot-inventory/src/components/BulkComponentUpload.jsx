@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Plus, X, Check, Upload, Calendar as CalendarIcon } from 'lucide-react';
 import { toast } from 'sonner';
 
-export function BulkComponentUpload({ open, onOpenChange }) {
+export function BulkComponentUpload({ open, onOpenChange, onSuccess }) {
     const [components, setComponents] = useState([
         { id: 1, name: '', category: '', isCustomCategory: false, condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '' },
         { id: 2, name: '', category: '', isCustomCategory: false, condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '' },
@@ -80,7 +80,7 @@ export function BulkComponentUpload({ open, onOpenChange }) {
         }
     };
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         // Filter out empty rows
         const filledComponents = components.filter(comp =>
             comp.name.trim() !== '' || comp.category.trim() !== ''
@@ -101,19 +101,60 @@ export function BulkComponentUpload({ open, onOpenChange }) {
             return;
         }
 
-        // Here you would send the data to your backend
-        console.log('Submitting components:', filledComponents);
-        toast.success(`${filledComponents.length} component(s) added successfully!`);
+        try {
+            const token = sessionStorage.getItem('token');
 
-        // Reset form
-        setComponents([
-            { id: 1, name: '', category: '', isCustomCategory: false, condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '' },
-            { id: 2, name: '', category: '', isCustomCategory: false, condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '' },
-            { id: 3, name: '', category: '', isCustomCategory: false, condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '' },
-            { id: 4, name: '', category: '', isCustomCategory: false, condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '' },
-            { id: 5, name: '', category: '', isCustomCategory: false, condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '' },
-        ]);
-        onOpenChange(false);
+            // Prepare components for API
+            const componentsToUpload = filledComponents.map(comp => ({
+                name: comp.name.trim(),
+                category: comp.category.trim(),
+                quantity: parseInt(comp.quantity),
+                available: parseInt(comp.quantity),
+                threshold: parseInt(comp.threshold),
+                condition: comp.condition,
+                description: comp.description?.trim() || '',
+                datasheet: comp.datasheet?.trim() || '',
+                purchaseDate: comp.purchaseDate || new Date().toISOString().split('T')[0],
+                tags: comp.tags ? comp.tags.split(',').map(t => t.trim()).filter(t => t) : [],
+                visibleToUsers: true // Default to visible
+            }));
+
+            // Upload each component
+            const promises = componentsToUpload.map(comp =>
+                fetch('/api/components', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(comp)
+                })
+            );
+
+            const results = await Promise.all(promises);
+            const failed = results.filter(r => !r.ok);
+
+            if (failed.length > 0) {
+                toast.error(`${failed.length} component(s) failed to upload`);
+            } else {
+                toast.success(`${filledComponents.length} component(s) added successfully!`);
+            }
+
+            // Reset form
+            setComponents([
+                { id: 1, name: '', category: '', isCustomCategory: false, condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '' },
+                { id: 2, name: '', category: '', isCustomCategory: false, condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '' },
+                { id: 3, name: '', category: '', isCustomCategory: false, condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '' },
+                { id: 4, name: '', category: '', isCustomCategory: false, condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '' },
+                { id: 5, name: '', category: '', isCustomCategory: false, condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '' },
+            ]);
+
+            if (onSuccess) onSuccess();
+            onOpenChange(false);
+        } catch (error) {
+            console.error('Error uploading components:', error);
+            toast.error('Failed to upload components');
+        }
     };
 
     const handleCancel = () => {

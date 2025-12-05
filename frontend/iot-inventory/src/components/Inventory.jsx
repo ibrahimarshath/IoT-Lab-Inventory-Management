@@ -1,10 +1,17 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { Input } from './ui/input';
+import { Label } from './ui/label';
+import { Textarea } from './ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
-import { Package, Search } from 'lucide-react';
+import { Switch } from './ui/switch';
+import { Package, Search, Plus, Upload, Eye, EyeOff } from 'lucide-react';
+import { BulkComponentUpload } from './BulkComponentUpload';
+import { toast } from 'sonner';
 
 export function Inventory() {
   const [components, setComponents] = useState([]);
@@ -12,6 +19,24 @@ export function Inventory() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterCategory, setFilterCategory] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
+
+  // Add Component Dialog
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isBulkUploadOpen, setIsBulkUploadOpen] = useState(false);
+
+  // Form states
+  const [formData, setFormData] = useState({
+    name: '',
+    category: '',
+    quantity: '',
+    threshold: '',
+    description: '',
+    datasheet: '',
+    purchaseDate: '',
+    condition: 'New',
+    tags: '',
+    visibleToUsers: true
+  });
 
   useEffect(() => {
     fetchInventory();
@@ -58,6 +83,85 @@ export function Inventory() {
   const lowStockCount = components.filter(c => getStockStatus(c) === 'low-stock').length;
   const outOfStockCount = components.filter(c => getStockStatus(c) === 'out-of-stock').length;
 
+  const resetForm = () => {
+    setFormData({
+      name: '',
+      category: '',
+      quantity: '',
+      threshold: '',
+      description: '',
+      datasheet: '',
+      purchaseDate: '',
+      condition: 'New',
+      tags: '',
+      visibleToUsers: true
+    });
+  };
+
+  const handleAddComponent = async () => {
+    try {
+      const token = sessionStorage.getItem('token');
+
+      const payload = {
+        name: formData.name,
+        category: formData.category,
+        quantity: parseInt(formData.quantity),
+        available: parseInt(formData.quantity),
+        threshold: parseInt(formData.threshold),
+        description: formData.description,
+        datasheet: formData.datasheet,
+        purchaseDate: formData.purchaseDate,
+        condition: formData.condition,
+        tags: formData.tags ? formData.tags.split(',').map(t => t.trim()) : [],
+        visibleToUsers: formData.visibleToUsers
+      };
+
+      const response = await fetch('/api/components', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to add component');
+      }
+
+      toast.success('Component added successfully');
+      setIsAddDialogOpen(false);
+      resetForm();
+      fetchInventory();
+    } catch (error) {
+      console.error('Error adding component:', error);
+      toast.error(error.message || 'Failed to add component');
+    }
+  };
+
+  const toggleVisibility = async (componentId, currentVisibility) => {
+    try {
+      const token = sessionStorage.getItem('token');
+      const response = await fetch(`/api/components/${componentId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ visibleToUsers: !currentVisibility })
+      });
+
+      if (!response.ok) throw new Error('Failed to update visibility');
+
+      toast.success(`Component ${!currentVisibility ? 'shown to' : 'hidden from'} users`);
+      fetchInventory();
+    } catch (error) {
+      console.error('Error updating visibility:', error);
+      toast.error('Failed to update visibility');
+    }
+  };
+
   if (loading) {
     return (
       <div className="p-8">
@@ -71,8 +175,22 @@ export function Inventory() {
   return (
     <div className="p-8">
       <div className="mb-8">
-        <h2 className="text-gray-900 mb-2">Inventory Overview</h2>
-        <p className="text-gray-600">Monitor stock levels and component availability</p>
+        <div className="flex items-center justify-between mb-2">
+          <div>
+            <h2 className="text-gray-900 mb-2">Inventory Overview</h2>
+            <p className="text-gray-600">Monitor stock levels and component availability</p>
+          </div>
+          <div className="flex gap-2">
+            <Button onClick={() => setIsBulkUploadOpen(true)} variant="outline" className="gap-2">
+              <Upload className="w-4 h-4" />
+              Bulk Upload
+            </Button>
+            <Button onClick={() => setIsAddDialogOpen(true)} className="gap-2">
+              <Plus className="w-4 h-4" />
+              Add Component
+            </Button>
+          </div>
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -199,6 +317,7 @@ export function Inventory() {
                   <TableHead className="text-center">Borrowed</TableHead>
                   <TableHead className="text-center">Threshold</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead className="text-center">Visibility</TableHead>
                   <TableHead>Last Updated</TableHead>
                 </TableRow>
               </TableHeader>
@@ -236,6 +355,26 @@ export function Inventory() {
                           <Badge className="bg-green-500">In Stock</Badge>
                         )}
                       </TableCell>
+                      <TableCell className="text-center">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => toggleVisibility(component._id, component.visibleToUsers)}
+                          className="gap-2"
+                        >
+                          {component.visibleToUsers ? (
+                            <>
+                              <Eye className="w-4 h-4 text-green-600" />
+                              <span className="text-xs text-green-600">Visible</span>
+                            </>
+                          ) : (
+                            <>
+                              <EyeOff className="w-4 h-4 text-gray-400" />
+                              <span className="text-xs text-gray-400">Hidden</span>
+                            </>
+                          )}
+                        </Button>
+                      </TableCell>
                       <TableCell className="text-sm text-gray-600">
                         {new Date(component.createdAt || component.purchaseDate).toLocaleDateString()}
                       </TableCell>
@@ -247,6 +386,155 @@ export function Inventory() {
           )}
         </CardContent>
       </Card>
+
+      {/* Add Component Dialog */}
+      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Add New Component</DialogTitle>
+            <DialogDescription>Enter the component details to add to inventory</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="name">Component Name *</Label>
+                <Input
+                  id="name"
+                  value={formData.name}
+                  onChange={e => setFormData({ ...formData, name: e.target.value })}
+                  placeholder="e.g., Arduino Uno R3"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="category">Category *</Label>
+                <Select value={formData.category} onValueChange={val => setFormData({ ...formData, category: val })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Microcontroller">Microcontroller</SelectItem>
+                    <SelectItem value="Sensor">Sensor</SelectItem>
+                    <SelectItem value="Actuator">Actuator</SelectItem>
+                    <SelectItem value="Single Board Computer">Single Board Computer</SelectItem>
+                    <SelectItem value="Power">Power</SelectItem>
+                    <SelectItem value="Display">Display</SelectItem>
+                    <SelectItem value="Communication">Communication</SelectItem>
+                    <SelectItem value="Other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="quantity">Total Quantity *</Label>
+                <Input
+                  id="quantity"
+                  type="number"
+                  value={formData.quantity}
+                  onChange={e => setFormData({ ...formData, quantity: e.target.value })}
+                  placeholder="10"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="threshold">Min Threshold *</Label>
+                <Input
+                  id="threshold"
+                  type="number"
+                  value={formData.threshold}
+                  onChange={e => setFormData({ ...formData, threshold: e.target.value })}
+                  placeholder="5"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="condition">Condition</Label>
+                <Select value={formData.condition} onValueChange={val => setFormData({ ...formData, condition: val })}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="New">New</SelectItem>
+                    <SelectItem value="Excellent">Excellent</SelectItem>
+                    <SelectItem value="Good">Good</SelectItem>
+                    <SelectItem value="Fair">Fair</SelectItem>
+                    <SelectItem value="Poor">Poor</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                value={formData.description}
+                onChange={e => setFormData({ ...formData, description: e.target.value })}
+                placeholder="Brief description of the component"
+                rows={3}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="purchaseDate">Purchase Date</Label>
+                <Input
+                  id="purchaseDate"
+                  type="date"
+                  value={formData.purchaseDate}
+                  onChange={e => setFormData({ ...formData, purchaseDate: e.target.value })}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="datasheet">Datasheet URL</Label>
+                <Input
+                  id="datasheet"
+                  value={formData.datasheet}
+                  onChange={e => setFormData({ ...formData, datasheet: e.target.value })}
+                  placeholder="https://..."
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="tags">Tags (comma-separated)</Label>
+              <Input
+                id="tags"
+                value={formData.tags}
+                onChange={e => setFormData({ ...formData, tags: e.target.value })}
+                placeholder="IoT, robot, automation"
+              />
+            </div>
+
+            <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
+              <div>
+                <Label htmlFor="visibility" className="text-sm font-medium">Visible to Users</Label>
+                <p className="text-xs text-gray-600 mt-1">Allow students to see and borrow this component</p>
+              </div>
+              <Switch
+                id="visibility"
+                checked={formData.visibleToUsers}
+                onCheckedChange={checked => setFormData({ ...formData, visibleToUsers: checked })}
+              />
+            </div>
+          </div>
+          <div className="flex justify-end gap-3">
+            <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>Cancel</Button>
+            <Button
+              onClick={handleAddComponent}
+              disabled={!formData.name || !formData.category || !formData.quantity || !formData.threshold}
+            >
+              Add Component
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Bulk Upload Dialog */}
+      <BulkComponentUpload
+        open={isBulkUploadOpen}
+        onOpenChange={setIsBulkUploadOpen}
+        onSuccess={fetchInventory}
+      />
     </div>
   );
 }

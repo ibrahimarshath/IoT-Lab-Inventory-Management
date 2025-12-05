@@ -47,6 +47,10 @@ const ComponentSchema = new mongoose.Schema({
         type: String,
         trim: true
     }],
+    visibleToUsers: {
+        type: Boolean,
+        default: true
+    },
     createdAt: {
         type: Date,
         default: Date.now

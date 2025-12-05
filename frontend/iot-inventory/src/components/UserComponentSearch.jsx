@@ -39,7 +39,7 @@ export function UserComponentSearch({ cart, setCart }) {
       });
       if (!response.ok) throw new Error('Failed to fetch components');
       const data = await response.json();
-      setComponents(data);
+      setComponents(data.filter(c => c.visibleToUsers !== false));
     } catch (error) {
       console.error('Error fetching components:', error);
       toast.error('Failed to load components');
