@@ -15,7 +15,7 @@ export function BorrowRequests() {
   const [loading, setLoading] = useState(true);
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [isResponseDialogOpen, setIsResponseDialogOpen] = useState(false);
-  const [responseAction, setResponseAction] = useState(''); // 'approve' or 'reject'
+  const [responseAction, setResponseAction] = useState('');
   const [adminResponse, setAdminResponse] = useState('');
 
   useEffect(() => {
@@ -25,11 +25,14 @@ export function BorrowRequests() {
   const fetchRequests = async () => {
     try {
       const token = sessionStorage.getItem('token');
+      console.log('Fetching borrow requests...');
       const response = await fetch('/api/borrow-requests', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
+      console.log('Response status:', response.status);
       if (!response.ok) throw new Error('Failed to fetch requests');
       const data = await response.json();
+      console.log('Fetched requests:', data);
       setRequests(data);
     } catch (error) {
       console.error('Error fetching requests:', error);
@@ -131,7 +134,6 @@ export function BorrowRequests() {
         </div>
       </div>
 
-      {/* Pending Requests */}
       {pendingRequests.length > 0 && (
         <Card className="mb-6">
           <CardHeader>
@@ -206,7 +208,6 @@ export function BorrowRequests() {
         </Card>
       )}
 
-      {/* Processed Requests */}
       {processedRequests.length > 0 && (
         <Card>
           <CardHeader>
@@ -259,7 +260,6 @@ export function BorrowRequests() {
         </Card>
       )}
 
-      {/* Empty State */}
       {requests.length === 0 && (
         <Card>
           <CardContent className="p-12 text-center">
@@ -275,7 +275,6 @@ export function BorrowRequests() {
         </Card>
       )}
 
-      {/* Response Dialog */}
       <Dialog open={isResponseDialogOpen} onOpenChange={setIsResponseDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
