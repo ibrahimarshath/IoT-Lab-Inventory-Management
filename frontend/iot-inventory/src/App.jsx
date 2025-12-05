@@ -73,13 +73,17 @@ export default function App() {
     label: "Dashboard",
     icon: LayoutDashboard
   }, {
+    id: "inventory",
+    label: "Inventory",
+    icon: Boxes
+  }, {
     id: "borrowing",
     label: "Borrow & Return",
     icon: ArrowLeftRight
   }, {
-    id: "inventory",
-    label: "Inventory",
-    icon: Boxes
+    id: "users",
+    label: "Users",
+    icon: UsersIcon
   }, {
     id: "smartlab",
     label: "Smart Lab",
@@ -88,10 +92,6 @@ export default function App() {
     id: "logs",
     label: "Activity Logs",
     icon: Activity
-  }, {
-    id: "users",
-    label: "Users",
-    icon: UsersIcon
   }];
 
   const userNavigation = [{
