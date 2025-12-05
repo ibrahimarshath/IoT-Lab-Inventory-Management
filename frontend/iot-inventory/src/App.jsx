@@ -27,8 +27,8 @@ export default function App() {
 
   // Check for existing session on mount
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const user = localStorage.getItem('user');
+    const token = sessionStorage.getItem('token');
+    const user = sessionStorage.getItem('user');
 
     if (token && user) {
       try {
@@ -38,8 +38,8 @@ export default function App() {
         setIsLoggedIn(true);
       } catch (error) {
         console.error('Error parsing user data:', error);
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
+        sessionStorage.removeItem('token');
+        sessionStorage.removeItem('user');
       }
     }
   }, []);
@@ -61,8 +61,8 @@ export default function App() {
     setMode("user");
     setCurrentView("dashboard");
     setCurrentUserView("search");
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    sessionStorage.removeItem('token');
+    sessionStorage.removeItem('user');
   };
 
   if (!isLoggedIn) {

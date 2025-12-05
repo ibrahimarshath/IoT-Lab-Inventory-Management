@@ -51,8 +51,8 @@ export function Login({ onLogin }) {
         throw new Error('Access denied: You do not have administrator privileges');
       }
 
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
+      sessionStorage.setItem('token', data.token);
+      sessionStorage.setItem('user', JSON.stringify(data.user));
 
       onLogin(userRole, data.user.name);
     } catch (err) {
