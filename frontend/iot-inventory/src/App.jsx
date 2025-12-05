@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { Dashboard } from "./components/Dashboard";
-import { ComponentsManagement } from "./components/ComponentsManagement";
 import { BorrowingManagement } from "./components/BorrowingManagement";
 import { Inventory } from "./components/Inventory";
 import { SmartLabControl } from "./components/SmartLabControl";
@@ -74,10 +73,6 @@ export default function App() {
     label: "Dashboard",
     icon: LayoutDashboard
   }, {
-    id: "components",
-    label: "Components",
-    icon: Package
-  }, {
     id: "borrowing",
     label: "Borrow & Return",
     icon: ArrowLeftRight
@@ -117,8 +112,6 @@ export default function App() {
     switch (currentView) {
       case "dashboard":
         return <Dashboard onNavigate={view => setCurrentView(view === "requests" ? "borrow-requests" : view)} />;
-      case "components":
-        return <ComponentsManagement />;
       case "borrowing":
         return <BorrowingManagement />;
       case "borrow-requests":
