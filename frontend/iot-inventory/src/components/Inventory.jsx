@@ -511,8 +511,8 @@ export function Inventory() {
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600">Available:</span>
                       <span className={`font-medium ${status === 'out-of-stock' ? 'text-red-600' :
-                          status === 'low-stock' ? 'text-orange-600' :
-                            'text-green-600'
+                        status === 'low-stock' ? 'text-orange-600' :
+                          'text-green-600'
                         }`}>
                         {component.available}
                       </span>
@@ -876,6 +876,8 @@ export function Inventory() {
         open={isBulkUploadOpen}
         onOpenChange={setIsBulkUploadOpen}
         onSuccess={fetchInventory}
+        existingCategories={existingCategories}
+        existingTags={allTags}
       />
     </div>
   );

@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Plus, X, Check, Upload, Calendar as CalendarIcon, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
-export function BulkComponentUpload({ open, onOpenChange, onSuccess }) {
+export function BulkComponentUpload({ open, onOpenChange, onSuccess, existingCategories = [], existingTags = [] }) {
     const [components, setComponents] = useState([
         { id: 1, name: '', category: '', condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '', isCustomCategory: false, isCustomTag: false },
         { id: 2, name: '', category: '', condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '', isCustomCategory: false, isCustomTag: false },
@@ -14,29 +14,6 @@ export function BulkComponentUpload({ open, onOpenChange, onSuccess }) {
         { id: 4, name: '', category: '', condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '', isCustomCategory: false, isCustomTag: false },
         { id: 5, name: '', category: '', condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '', isCustomCategory: false, isCustomTag: false },
     ]);
-
-    const commonCategories = [
-        "Microcontroller",
-        "Sensor",
-        "Single Board Computer",
-        "Actuator",
-        "Power",
-        "Display",
-        "Communication",
-        "Shield",
-        "Tool"
-    ];
-
-    const commonTags = [
-        "Microcontroller",
-        "Sensor",
-        "Wireless",
-        "Power",
-        "Display",
-        "Motor",
-        "Shield",
-        "Tool"
-    ];
 
     const conditions = [
         "New",
@@ -195,7 +172,10 @@ export function BulkComponentUpload({ open, onOpenChange, onSuccess }) {
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[95vw] w-[95vw] h-[90vh] flex flex-col p-0 bg-white gap-0 overflow-hidden">
+            <DialogContent
+                className="sm:max-w-[95vw] w-[95vw] h-[90vh] flex flex-col p-0 bg-white gap-0 overflow-hidden"
+                onPointerDownOutside={(e) => e.preventDefault()}
+            >
                 {/* Header */}
                 <div className="border-b px-6 py-4 bg-white shrink-0">
                     <DialogTitle className="flex items-center gap-2 text-xl">
@@ -222,16 +202,16 @@ export function BulkComponentUpload({ open, onOpenChange, onSuccess }) {
                                 <th className="px-2 py-2 text-left font-semibold text-gray-700 border border-gray-300 min-w-[140px]">
                                     Condition
                                 </th>
-                                <th className="px-2 py-2 text-left font-semibold text-gray-700 border border-gray-300 min-w-[160px]">
+                                <th className="px-2 py-2 text-left font-semibold text-gray-700 border border-gray-300 min-w-[100px]">
                                     Total Qty <span className="text-red-500">*</span>
                                 </th>
-                                <th className="px-2 py-2 text-left font-semibold text-gray-700 border border-gray-300 min-w-[160px]">
+                                <th className="px-2 py-2 text-left font-semibold text-gray-700 border border-gray-300 min-w-[100px]">
                                     Min Threshold <span className="text-red-500">*</span>
                                 </th>
                                 <th className="px-2 py-2 text-left font-semibold text-gray-700 border border-gray-300 min-w-[160px]">
                                     Purchase Date
                                 </th>
-                                <th className="px-2 py-2 text-left font-semibold text-gray-700 border border-gray-300 min-w-[300px]">
+                                <th className="px-2 py-2 text-left font-semibold text-gray-700 border border-gray-300 min-w-[350px]">
                                     Description
                                 </th>
                                 <th className="px-2 py-2 text-left font-semibold text-gray-700 border border-gray-300 min-w-[150px]">
@@ -266,7 +246,7 @@ export function BulkComponentUpload({ open, onOpenChange, onSuccess }) {
                                                     value={comp.category}
                                                     onChange={(e) => handleCellChange(comp.id, 'category', e.target.value)}
                                                     placeholder="Type category..."
-                                                    className="h-full border-0 rounded-none shadow-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-blue-500 px-2 flex-1"
+                                                    className="h-full border-0 rounded-none shadow-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-blue-500 px-2 flex-1 bg-white text-gray-900"
                                                     autoFocus
                                                 />
                                                 <Button
@@ -288,7 +268,7 @@ export function BulkComponentUpload({ open, onOpenChange, onSuccess }) {
                                                     <SelectValue placeholder="Select category" />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {commonCategories.map(cat => (
+                                                    {existingCategories.map(cat => (
                                                         <SelectItem key={cat} value={cat}>{cat}</SelectItem>
                                                     ))}
                                                     <SelectItem value="new_custom" className="text-blue-600 font-medium">
@@ -364,7 +344,7 @@ export function BulkComponentUpload({ open, onOpenChange, onSuccess }) {
                                                     value={comp.tags}
                                                     onChange={(e) => handleCellChange(comp.id, 'tags', e.target.value)}
                                                     placeholder="Comma separated tags"
-                                                    className="h-full border-0 rounded-none shadow-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-blue-500 px-2 flex-1"
+                                                    className="h-full border-0 rounded-none shadow-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-blue-500 px-2 flex-1 bg-white text-gray-900"
                                                     autoFocus
                                                 />
                                                 <Button
@@ -386,7 +366,7 @@ export function BulkComponentUpload({ open, onOpenChange, onSuccess }) {
                                                     <SelectValue placeholder="Select tag" />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {commonTags.map(tag => (
+                                                    {existingTags.map(tag => (
                                                         <SelectItem key={tag} value={tag}>{tag}</SelectItem>
                                                     ))}
                                                     <SelectItem value="new_custom" className="text-blue-600 font-medium">
