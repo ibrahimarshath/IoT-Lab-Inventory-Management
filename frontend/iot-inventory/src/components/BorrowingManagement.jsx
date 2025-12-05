@@ -8,8 +8,9 @@ import { Label } from './ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
-import { Plus, Search, CheckCircle, AlertCircle, Clock, Mail, X } from 'lucide-react';
+import { Plus, Search, CheckCircle, AlertCircle, Clock, Mail, X, Bell } from 'lucide-react';
 import { toast } from 'sonner';
+import { BorrowRequests } from './BorrowRequests';
 
 export function BorrowingManagement() {
   const [borrowings, setBorrowings] = useState([]);
@@ -20,6 +21,7 @@ export function BorrowingManagement() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [userDialogOpen, setUserDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
+  const [showBorrowRequests, setShowBorrowRequests] = useState(false);
 
   // Form states
   const [formUserName, setFormUserName] = useState('');
@@ -282,10 +284,16 @@ export function BorrowingManagement() {
             <h2 className="text-gray-900 mb-2">Borrow & Return Management</h2>
             <p className="text-gray-600">Track all component borrowing activities</p>
           </div>
-          <Button className="gap-2" onClick={() => setIsAddDialogOpen(true)}>
-            <Plus className="w-4 h-4" />
-            New Borrowing
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" className="gap-2" onClick={() => setShowBorrowRequests(true)}>
+              <Bell className="w-4 h-4" />
+              Requests
+            </Button>
+            <Button className="gap-2" onClick={() => setIsAddDialogOpen(true)}>
+              <Plus className="w-4 h-4" />
+              New Borrowing
+            </Button>
+          </div>
           <Dialog open={isAddDialogOpen} onOpenChange={handleDialogChange}>
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
@@ -526,6 +534,13 @@ export function BorrowingManagement() {
               </div>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Borrow Requests Dialog */}
+      <Dialog open={showBorrowRequests} onOpenChange={setShowBorrowRequests}>
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+          <BorrowRequests adminUsername={sessionStorage.getItem('user') ? JSON.parse(sessionStorage.getItem('user')).name : 'Admin'} />
         </DialogContent>
       </Dialog>
     </div>
