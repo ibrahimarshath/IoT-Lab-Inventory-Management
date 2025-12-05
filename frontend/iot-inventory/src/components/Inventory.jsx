@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 import { Switch } from './ui/switch';
-import { Package, Search, Plus, Upload, Eye, EyeOff, Edit, Trash2 } from 'lucide-react';
+import { Package, Search, Plus, Upload, Eye, EyeOff, Edit, Trash2, Filter, LayoutGrid, List, ExternalLink } from 'lucide-react';
 import { BulkComponentUpload } from './BulkComponentUpload';
 import { toast } from 'sonner';
 
@@ -19,6 +19,14 @@ export function Inventory() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterCategory, setFilterCategory] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [selectedTags, setSelectedTags] = useState([]);
+  const [viewMode, setViewMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('inventoryViewMode');
+      return saved === 'list' || saved === 'cards' ? saved : 'list';
+    }
+    return 'list';
+  });
 
   // Dialog states
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -45,6 +53,12 @@ export function Inventory() {
     fetchInventory();
   }, []);
 
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('inventoryViewMode', viewMode);
+    }
+  }, [viewMode]);
+
   const fetchInventory = async () => {
     try {
       const token = sessionStorage.getItem('token');
@@ -65,6 +79,9 @@ export function Inventory() {
   const existingCategories = Array.from(new Set(components.map(c => c.category))).sort();
   const categories = ['all', ...existingCategories];
 
+  // Get all unique tags
+  const allTags = Array.from(new Set(components.flatMap(c => c.tags || []))).sort();
+
   const getStockStatus = (component) => {
     if (component.available === 0) return 'out-of-stock';
     if (component.available <= component.threshold) return 'low-stock';
@@ -73,19 +90,25 @@ export function Inventory() {
 
   const filteredComponents = components.filter(component => {
     const matchesSearch = component.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      component.category.toLowerCase().includes(searchQuery.toLowerCase());
+      component.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (component.description && component.description.toLowerCase().includes(searchQuery.toLowerCase()));
     const matchesCategory = filterCategory === 'all' || component.category === filterCategory;
+    const matchesTags = selectedTags.length === 0 || selectedTags.some(tag => (component.tags || []).includes(tag));
     const status = getStockStatus(component);
     const matchesStatus = filterStatus === 'all' ||
       (filterStatus === 'low-stock' && status === 'low-stock') ||
       (filterStatus === 'out-of-stock' && status === 'out-of-stock') ||
       (filterStatus === 'in-stock' && status === 'in-stock');
-    return matchesSearch && matchesCategory && matchesStatus;
+    return matchesSearch && matchesCategory && matchesTags && matchesStatus;
   });
 
   const totalItems = components.reduce((sum, c) => sum + c.quantity, 0);
   const lowStockCount = components.filter(c => getStockStatus(c) === 'low-stock').length;
   const outOfStockCount = components.filter(c => getStockStatus(c) === 'out-of-stock').length;
+
+  const toggleTag = tag => {
+    setSelectedTags(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]);
+  };
 
   const resetForm = () => {
     setFormData({
@@ -340,61 +363,243 @@ export function Inventory() {
         </Card>
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-col md:flex-row gap-4 mb-6">
-        <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <Input
-            placeholder="Search components..."
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            className="pl-10"
-          />
+      {/* Search and Filters */}
+      <div className="flex flex-col gap-4 mb-6">
+        <div className="flex gap-4">
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Input
+              placeholder="Search components by name, category, or description..."
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          <Select value={filterCategory} onValueChange={setFilterCategory}>
+            <SelectTrigger className="w-48">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {categories.map(cat => (
+                <SelectItem key={cat} value={cat}>
+                  {cat === 'all' ? 'All Categories' : cat}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={filterStatus} onValueChange={setFilterStatus}>
+            <SelectTrigger className="w-48">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Status</SelectItem>
+              <SelectItem value="in-stock">In Stock</SelectItem>
+              <SelectItem value="low-stock">Low Stock</SelectItem>
+              <SelectItem value="out-of-stock">Out of Stock</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
-        <Select value={filterCategory} onValueChange={setFilterCategory}>
-          <SelectTrigger className="w-48">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {categories.map(cat => (
-              <SelectItem key={cat} value={cat}>
-                {cat === 'all' ? 'All Categories' : cat}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select value={filterStatus} onValueChange={setFilterStatus}>
-          <SelectTrigger className="w-48">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value="in-stock">In Stock</SelectItem>
-            <SelectItem value="low-stock">Low Stock</SelectItem>
-            <SelectItem value="out-of-stock">Out of Stock</SelectItem>
-          </SelectContent>
-        </Select>
+
+        {/* Tag Filters */}
+        {allTags.length > 0 && (
+          <div className="flex items-center gap-2">
+            <Filter className="w-4 h-4 text-gray-600" />
+            <span className="text-sm text-gray-600">Filter by tags:</span>
+            <div className="flex flex-wrap gap-2">
+              {allTags.map(tag => (
+                <Badge
+                  key={tag}
+                  variant={selectedTags.includes(tag) ? "default" : "outline"}
+                  className="cursor-pointer"
+                  onClick={() => toggleTag(tag)}
+                >
+                  {tag}
+                </Badge>
+              ))}
+            </div>
+            {selectedTags.length > 0 && (
+              <Button variant="ghost" size="sm" onClick={() => setSelectedTags([])}>
+                Clear filters
+              </Button>
+            )}
+          </div>
+        )}
       </div>
 
-      {/* Inventory Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Inventory Items</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {filteredComponents.length === 0 ? (
-            <div className="text-center py-12">
-              <Package className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
-                {components.length === 0 ? 'No Inventory Items' : 'No Items Found'}
-              </h3>
-              <p className="text-gray-500">
-                {components.length === 0
-                  ? 'Add components to start tracking inventory'
-                  : 'Try adjusting your search or filters'}
-              </p>
-            </div>
-          ) : (
+      {/* View Toggle */}
+      <div className="flex items-center justify-between mb-4">
+        <p className="text-gray-600">
+          {filteredComponents.length} component{filteredComponents.length !== 1 ? 's' : ''} found
+        </p>
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-gray-600">View:</span>
+          <div className="flex gap-1 border border-gray-200 rounded-lg p-1">
+            <Button
+              variant={viewMode === 'cards' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setViewMode('cards')}
+              className="gap-2"
+            >
+              <LayoutGrid className="w-4 h-4" />
+              Cards
+            </Button>
+            <Button
+              variant={viewMode === 'list' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setViewMode('list')}
+              className="gap-2"
+            >
+              <List className="w-4 h-4" />
+              List
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Empty State */}
+      {filteredComponents.length === 0 && (
+        <Card>
+          <CardContent className="p-12 text-center">
+            <Package className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              {components.length === 0 ? 'No Inventory Items' : 'No Items Found'}
+            </h3>
+            <p className="text-gray-500">
+              {components.length === 0
+                ? 'Add components to start tracking inventory'
+                : 'Try adjusting your search or filters'}
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Card View */}
+      {viewMode === 'cards' && filteredComponents.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredComponents.map(component => {
+            const status = getStockStatus(component);
+            const borrowed = component.quantity - component.available;
+
+            return (
+              <Card key={component._id} className="hover:shadow-lg transition-shadow">
+                <CardHeader>
+                  <div className="flex items-start justify-between mb-2">
+                    <CardTitle className="text-gray-900">{component.name}</CardTitle>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => toggleVisibility(component._id, component.visibleToUsers)}
+                      className="h-8 w-8 p-0"
+                    >
+                      {component.visibleToUsers ? (
+                        <Eye className="w-4 h-4 text-green-600" />
+                      ) : (
+                        <EyeOff className="w-4 h-4 text-gray-400" />
+                      )}
+                    </Button>
+                  </div>
+                  <Badge variant="secondary">{component.category}</Badge>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-700 mb-4 text-sm">{component.description || 'No description'}</p>
+
+                  <div className="space-y-2 mb-4">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Total Quantity:</span>
+                      <span className="font-medium text-gray-900">{component.quantity}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Available:</span>
+                      <span className={`font-medium ${status === 'out-of-stock' ? 'text-red-600' :
+                          status === 'low-stock' ? 'text-orange-600' :
+                            'text-green-600'
+                        }`}>
+                        {component.available}
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Borrowed:</span>
+                      <span className="font-medium text-gray-900">{borrowed}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Threshold:</span>
+                      <span className="font-medium text-gray-900">{component.threshold}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Condition:</span>
+                      <span className="font-medium text-gray-900">{component.condition}</span>
+                    </div>
+                  </div>
+
+                  <div className="mb-4">
+                    {status === 'out-of-stock' && (
+                      <Badge variant="destructive" className="w-full justify-center">Out of Stock</Badge>
+                    )}
+                    {status === 'low-stock' && (
+                      <Badge className="bg-orange-500 w-full justify-center">Low Stock</Badge>
+                    )}
+                    {status === 'in-stock' && (
+                      <Badge className="bg-green-500 w-full justify-center">In Stock</Badge>
+                    )}
+                  </div>
+
+                  {component.tags && component.tags.length > 0 && (
+                    <div className="mb-4">
+                      <p className="text-sm text-gray-600 mb-2">Tags:</p>
+                      <div className="flex flex-wrap gap-1">
+                        {component.tags.map(tag => (
+                          <Badge key={tag} variant="outline" className="text-xs">
+                            {tag}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex gap-2 pt-4 border-t">
+                    {component.datasheet && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1 gap-2"
+                        onClick={() => window.open(component.datasheet, '_blank')}
+                      >
+                        <ExternalLink className="w-3 h-3" />
+                        Datasheet
+                      </Button>
+                    )}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => openEditDialog(component)}
+                      className="flex-1 gap-1"
+                    >
+                      <Edit className="w-3 h-3" />
+                      Edit
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDeleteComponent(component._id, component.name)}
+                      className="gap-1 text-red-600 hover:text-red-700"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      )}
+
+      {/* List View (Table) */}
+      {viewMode === 'list' && filteredComponents.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Inventory Items</CardTitle>
+          </CardHeader>
+          <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
@@ -490,9 +695,9 @@ export function Inventory() {
                 })}
               </TableBody>
             </Table>
-          )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Add/Edit Component Dialog */}
       <Dialog open={isAddDialogOpen || isEditDialogOpen} onOpenChange={(open) => {
