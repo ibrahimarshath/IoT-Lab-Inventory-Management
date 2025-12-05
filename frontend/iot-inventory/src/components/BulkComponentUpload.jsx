@@ -3,26 +3,25 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { Plus, X, Check, Upload, Calendar as CalendarIcon } from 'lucide-react';
+import { Plus, X, Check, Upload, Calendar as CalendarIcon, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 export function BulkComponentUpload({ open, onOpenChange, onSuccess }) {
     const [components, setComponents] = useState([
-        { id: 1, name: '', category: '', isCustomCategory: false, condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '' },
-        { id: 2, name: '', category: '', isCustomCategory: false, condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '' },
-        { id: 3, name: '', category: '', isCustomCategory: false, condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '' },
-        { id: 4, name: '', category: '', isCustomCategory: false, condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '' },
-        { id: 5, name: '', category: '', isCustomCategory: false, condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '' },
+        { id: 1, name: '', category: '', condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '', isCustomTag: false },
+        { id: 2, name: '', category: '', condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '', isCustomTag: false },
+        { id: 3, name: '', category: '', condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '', isCustomTag: false },
+        { id: 4, name: '', category: '', condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '', isCustomTag: false },
+        { id: 5, name: '', category: '', condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '', isCustomTag: false },
     ]);
 
-    const categories = [
+    const commonTags = [
         "Microcontroller",
         "Sensor",
-        "Single Board Computer",
-        "Actuator",
+        "Wireless",
         "Power",
         "Display",
-        "Communication",
+        "Motor",
         "Shield",
         "Tool",
         "Other"
@@ -40,20 +39,20 @@ export function BulkComponentUpload({ open, onOpenChange, onSuccess }) {
         setComponents(components.map(comp => {
             if (comp.id !== id) return comp;
 
-            if (field === 'category') {
+            if (field === 'tags') {
                 if (value === 'Other') {
-                    return { ...comp, category: '', isCustomCategory: true };
+                    return { ...comp, tags: '', isCustomTag: true };
                 }
-                return { ...comp, category: value, isCustomCategory: false };
+                return { ...comp, tags: value, isCustomTag: false };
             }
 
             return { ...comp, [field]: value };
         }));
     };
 
-    const toggleCustomCategory = (id, isCustom) => {
+    const toggleCustomTag = (id, isCustom) => {
         setComponents(components.map(comp =>
-            comp.id === id ? { ...comp, isCustomCategory: isCustom, category: '' } : comp
+            comp.id === id ? { ...comp, isCustomTag: isCustom, tags: '' } : comp
         ));
     };
 
@@ -63,14 +62,14 @@ export function BulkComponentUpload({ open, onOpenChange, onSuccess }) {
             id: newId,
             name: '',
             category: '',
-            isCustomCategory: false,
             condition: 'New',
             quantity: '',
             threshold: '',
             purchaseDate: '',
             description: '',
             datasheet: '',
-            tags: ''
+            tags: '',
+            isCustomTag: false
         }]);
     };
 
@@ -142,11 +141,11 @@ export function BulkComponentUpload({ open, onOpenChange, onSuccess }) {
 
             // Reset form
             setComponents([
-                { id: 1, name: '', category: '', isCustomCategory: false, condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '' },
-                { id: 2, name: '', category: '', isCustomCategory: false, condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '' },
-                { id: 3, name: '', category: '', isCustomCategory: false, condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '' },
-                { id: 4, name: '', category: '', isCustomCategory: false, condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '' },
-                { id: 5, name: '', category: '', isCustomCategory: false, condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '' },
+                { id: 1, name: '', category: '', condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '', isCustomTag: false },
+                { id: 2, name: '', category: '', condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '', isCustomTag: false },
+                { id: 3, name: '', category: '', condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '', isCustomTag: false },
+                { id: 4, name: '', category: '', condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '', isCustomTag: false },
+                { id: 5, name: '', category: '', condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '', isCustomTag: false },
             ]);
 
             if (onSuccess) onSuccess();
@@ -159,11 +158,11 @@ export function BulkComponentUpload({ open, onOpenChange, onSuccess }) {
 
     const handleCancel = () => {
         setComponents([
-            { id: 1, name: '', category: '', isCustomCategory: false, condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '' },
-            { id: 2, name: '', category: '', isCustomCategory: false, condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '' },
-            { id: 3, name: '', category: '', isCustomCategory: false, condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '' },
-            { id: 4, name: '', category: '', isCustomCategory: false, condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '' },
-            { id: 5, name: '', category: '', isCustomCategory: false, condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '' },
+            { id: 1, name: '', category: '', condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '', isCustomTag: false },
+            { id: 2, name: '', category: '', condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '', isCustomTag: false },
+            { id: 3, name: '', category: '', condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '', isCustomTag: false },
+            { id: 4, name: '', category: '', condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '', isCustomTag: false },
+            { id: 5, name: '', category: '', condition: 'New', quantity: '', threshold: '', purchaseDate: '', description: '', datasheet: '', tags: '', isCustomTag: false },
         ]);
         onOpenChange(false);
     };
@@ -197,16 +196,16 @@ export function BulkComponentUpload({ open, onOpenChange, onSuccess }) {
                                 <th className="px-2 py-2 text-left font-semibold text-gray-700 border border-gray-300 min-w-[140px]">
                                     Condition
                                 </th>
-                                <th className="px-2 py-2 text-left font-semibold text-gray-700 border border-gray-300 min-w-[140px]">
+                                <th className="px-2 py-2 text-left font-semibold text-gray-700 border border-gray-300 min-w-[160px]">
                                     Total Qty <span className="text-red-500">*</span>
                                 </th>
-                                <th className="px-2 py-2 text-left font-semibold text-gray-700 border border-gray-300 min-w-[140px]">
+                                <th className="px-2 py-2 text-left font-semibold text-gray-700 border border-gray-300 min-w-[160px]">
                                     Min Threshold <span className="text-red-500">*</span>
                                 </th>
                                 <th className="px-2 py-2 text-left font-semibold text-gray-700 border border-gray-300 min-w-[160px]">
                                     Purchase Date
                                 </th>
-                                <th className="px-2 py-2 text-left font-semibold text-gray-700 border border-gray-300 min-w-[250px]">
+                                <th className="px-2 py-2 text-left font-semibold text-gray-700 border border-gray-300 min-w-[150px]">
                                     Description
                                 </th>
                                 <th className="px-2 py-2 text-left font-semibold text-gray-700 border border-gray-300 min-w-[200px]">
@@ -235,40 +234,12 @@ export function BulkComponentUpload({ open, onOpenChange, onSuccess }) {
                                         />
                                     </td>
                                     <td className="p-0 border border-gray-300 bg-white group-hover:bg-gray-50">
-                                        {comp.isCustomCategory ? (
-                                            <div className="flex h-9">
-                                                <Input
-                                                    value={comp.category}
-                                                    onChange={(e) => handleCellChange(comp.id, 'category', e.target.value)}
-                                                    placeholder="Type category..."
-                                                    className="h-full border-0 rounded-none shadow-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-blue-500 px-2 flex-1"
-                                                    autoFocus
-                                                />
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="h-full w-9 shrink-0 rounded-none hover:bg-gray-100"
-                                                    onClick={() => toggleCustomCategory(comp.id, false)}
-                                                    title="Back to list"
-                                                >
-                                                    <X className="w-4 h-4" />
-                                                </Button>
-                                            </div>
-                                        ) : (
-                                            <Select
-                                                value={comp.category}
-                                                onValueChange={(value) => handleCellChange(comp.id, 'category', value)}
-                                            >
-                                                <SelectTrigger className="h-9 border-0 rounded-none shadow-none focus:ring-1 focus:ring-inset focus:ring-blue-500 px-2">
-                                                    <SelectValue placeholder="Select category" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {categories.map(cat => (
-                                                        <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                        )}
+                                        <Input
+                                            value={comp.category}
+                                            onChange={(e) => handleCellChange(comp.id, 'category', e.target.value)}
+                                            placeholder="Type category..."
+                                            className="h-9 border-0 rounded-none shadow-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-blue-500 px-2"
+                                        />
                                     </td>
                                     <td className="p-0 border border-gray-300 bg-white group-hover:bg-gray-50">
                                         <Select
@@ -330,12 +301,40 @@ export function BulkComponentUpload({ open, onOpenChange, onSuccess }) {
                                         />
                                     </td>
                                     <td className="p-0 border border-gray-300 bg-white group-hover:bg-gray-50">
-                                        <Input
-                                            value={comp.tags}
-                                            onChange={(e) => handleCellChange(comp.id, 'tags', e.target.value)}
-                                            placeholder="Comma separated tags"
-                                            className="h-9 border-0 rounded-none shadow-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-blue-500 px-2"
-                                        />
+                                        {comp.isCustomTag ? (
+                                            <div className="flex h-9">
+                                                <Input
+                                                    value={comp.tags}
+                                                    onChange={(e) => handleCellChange(comp.id, 'tags', e.target.value)}
+                                                    placeholder="Comma separated tags"
+                                                    className="h-full border-0 rounded-none shadow-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-blue-500 px-2 flex-1"
+                                                    autoFocus
+                                                />
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="h-full w-9 shrink-0 rounded-none hover:bg-gray-100"
+                                                    onClick={() => toggleCustomTag(comp.id, false)}
+                                                    title="Back to list"
+                                                >
+                                                    <X className="w-4 h-4" />
+                                                </Button>
+                                            </div>
+                                        ) : (
+                                            <Select
+                                                value={comp.tags}
+                                                onValueChange={(value) => handleCellChange(comp.id, 'tags', value)}
+                                            >
+                                                <SelectTrigger className="h-9 border-0 rounded-none shadow-none focus:ring-1 focus:ring-inset focus:ring-blue-500 px-2">
+                                                    <SelectValue placeholder="Select tag" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {commonTags.map(tag => (
+                                                        <SelectItem key={tag} value={tag}>{tag}</SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        )}
                                     </td>
                                     <td className="p-0 border border-gray-300 text-center sticky right-0 bg-white shadow-[-5px_0_10px_-5px_rgba(0,0,0,0.1)] group-hover:bg-gray-50 z-10">
                                         <Button
@@ -345,7 +344,7 @@ export function BulkComponentUpload({ open, onOpenChange, onSuccess }) {
                                             className="h-9 w-full rounded-none text-red-600 hover:text-red-700 hover:bg-red-50"
                                             disabled={components.length === 1}
                                         >
-                                            <X className="w-4 h-4" />
+                                            <Trash2 className="w-4 h-4" />
                                         </Button>
                                     </td>
                                 </tr>
