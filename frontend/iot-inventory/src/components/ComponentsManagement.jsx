@@ -180,7 +180,7 @@ export function ComponentsManagement() {
       <div className="mb-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-gray-900 mb-2">Components Management</h2>
+            <h2 className="text-gray-900 mb-2">Browse and Manage Components</h2>
             <p className="text-gray-600">Manage all hardware components in the lab</p>
           </div>
           <Button className="gap-2" onClick={() => setIsAddDialogOpen(true)}>
