@@ -7,6 +7,16 @@ If you are setting this up on a new device or have just pulled the latest code, 
 - MongoDB installed and running (or a MongoDB Atlas connection string)
 - Git installed
 
+### 1.1 Verification
+To check if you have these installed, open your terminal (Command Prompt or PowerShell) and run:
+
+- **Node.js**: `node -v` (Should show a version like v16.x.x or higher)
+- **Git**: `git --version` (Should show git version ...)
+- **MongoDB**: 
+  - If installed locally, check if the service is running (Task Manager > Services > MongoDB).
+  - Or try running `mongosh --version` or `mongo --version`.
+  - If using MongoDB Atlas (Cloud), you just need your connection string.
+
 ## 2. Backend Setup
 The backend handles the API and database connection.
 
