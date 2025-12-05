@@ -16,6 +16,7 @@ app.use(cors());
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/components', require('./routes/components'));
 app.use('/api/docs', docsRoutes);
 
 // Database Connection
