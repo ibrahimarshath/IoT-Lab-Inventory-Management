@@ -38,7 +38,7 @@ export function Users() {
     const fetchUsers = async () => {
         setLoading(true);
         try {
-            const token = localStorage.getItem('token');
+            const token = sessionStorage.getItem('token');
             const response = await fetch('/api/admin/users', {
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -67,7 +67,7 @@ export function Users() {
     const fetchUserDetails = async (userId) => {
         setLoadingDetails(true);
         try {
-            const token = localStorage.getItem('token');
+            const token = sessionStorage.getItem('token');
             const response = await fetch(`/api/admin/users/${userId}/details`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -95,7 +95,7 @@ export function Users() {
 
     const handleDeleteUser = async (userId) => {
         try {
-            const token = localStorage.getItem('token');
+            const token = sessionStorage.getItem('token');
             const response = await fetch(`/api/admin/users/${userId}`, {
                 method: 'DELETE',
                 headers: {
