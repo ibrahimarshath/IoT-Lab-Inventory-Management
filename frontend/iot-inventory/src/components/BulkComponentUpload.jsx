@@ -197,10 +197,10 @@ export function BulkComponentUpload({ open, onOpenChange, onSuccess }) {
                                 <th className="px-2 py-2 text-left font-semibold text-gray-700 border border-gray-300 min-w-[140px]">
                                     Condition
                                 </th>
-                                <th className="px-2 py-2 text-left font-semibold text-gray-700 border border-gray-300 w-32">
+                                <th className="px-2 py-2 text-left font-semibold text-gray-700 border border-gray-300 min-w-[120px]">
                                     Total Qty <span className="text-red-500">*</span>
                                 </th>
-                                <th className="px-2 py-2 text-left font-semibold text-gray-700 border border-gray-300 w-32">
+                                <th className="px-2 py-2 text-left font-semibold text-gray-700 border border-gray-300 min-w-[120px]">
                                     Min Threshold <span className="text-red-500">*</span>
                                 </th>
                                 <th className="px-2 py-2 text-left font-semibold text-gray-700 border border-gray-300 min-w-[160px]">
