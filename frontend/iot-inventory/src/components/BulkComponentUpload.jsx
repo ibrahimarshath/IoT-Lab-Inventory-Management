@@ -202,16 +202,16 @@ export function BulkComponentUpload({ open, onOpenChange, onSuccess, existingCat
                                 <th className="px-2 py-2 text-left font-semibold text-gray-700 border border-gray-300 min-w-[140px]">
                                     Condition
                                 </th>
-                                <th className="px-2 py-2 text-left font-semibold text-gray-700 border border-gray-300 min-w-[100px]">
+                                <th className="px-2 py-2 text-left font-semibold text-gray-700 border border-gray-300 min-w-[140px]">
                                     Total Qty <span className="text-red-500">*</span>
                                 </th>
-                                <th className="px-2 py-2 text-left font-semibold text-gray-700 border border-gray-300 min-w-[100px]">
+                                <th className="px-2 py-2 text-left font-semibold text-gray-700 border border-gray-300 min-w-[140px]">
                                     Min Threshold <span className="text-red-500">*</span>
                                 </th>
                                 <th className="px-2 py-2 text-left font-semibold text-gray-700 border border-gray-300 min-w-[160px]">
                                     Purchase Date
                                 </th>
-                                <th className="px-2 py-2 text-left font-semibold text-gray-700 border border-gray-300 min-w-[350px]">
+                                <th className="px-2 py-2 text-left font-semibold text-gray-700 border border-gray-300 min-w-[400px]">
                                     Description
                                 </th>
                                 <th className="px-2 py-2 text-left font-semibold text-gray-700 border border-gray-300 min-w-[150px]">
@@ -241,18 +241,18 @@ export function BulkComponentUpload({ open, onOpenChange, onSuccess, existingCat
                                     </td>
                                     <td className="p-0 border border-gray-300 bg-white group-hover:bg-gray-50">
                                         {comp.isCustomCategory ? (
-                                            <div className="flex h-9">
+                                            <div className="flex h-9 items-center w-full">
                                                 <Input
                                                     value={comp.category}
                                                     onChange={(e) => handleCellChange(comp.id, 'category', e.target.value)}
                                                     placeholder="Type category..."
-                                                    className="h-full border-0 rounded-none shadow-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-blue-500 px-2 flex-1 bg-white text-gray-900"
+                                                    className="h-9 border-0 rounded-none shadow-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-blue-500 px-2 flex-1 bg-white text-black min-w-0"
                                                     autoFocus
                                                 />
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
-                                                    className="h-full w-9 shrink-0 rounded-none hover:bg-gray-100"
+                                                    className="h-9 w-9 shrink-0 rounded-none hover:bg-gray-100"
                                                     onClick={() => toggleCustomField(comp.id, 'category', false)}
                                                     title="Back to list"
                                                 >
@@ -339,18 +339,18 @@ export function BulkComponentUpload({ open, onOpenChange, onSuccess, existingCat
                                     </td>
                                     <td className="p-0 border border-gray-300 bg-white group-hover:bg-gray-50">
                                         {comp.isCustomTag ? (
-                                            <div className="flex h-9">
+                                            <div className="flex h-9 items-center w-full">
                                                 <Input
                                                     value={comp.tags}
                                                     onChange={(e) => handleCellChange(comp.id, 'tags', e.target.value)}
                                                     placeholder="Comma separated tags"
-                                                    className="h-full border-0 rounded-none shadow-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-blue-500 px-2 flex-1 bg-white text-gray-900"
+                                                    className="h-9 border-0 rounded-none shadow-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-blue-500 px-2 flex-1 bg-white text-black min-w-0"
                                                     autoFocus
                                                 />
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
-                                                    className="h-full w-9 shrink-0 rounded-none hover:bg-gray-100"
+                                                    className="h-9 w-9 shrink-0 rounded-none hover:bg-gray-100"
                                                     onClick={() => toggleCustomField(comp.id, 'tags', false)}
                                                     title="Back to list"
                                                 >
