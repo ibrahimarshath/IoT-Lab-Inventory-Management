@@ -47,6 +47,7 @@ export function Inventory() {
     condition: 'New',
     tags: '',
     isCustomTag: false,
+    isCustomCategory: false,
     visibleToUsers: true
   });
 
@@ -124,6 +125,7 @@ export function Inventory() {
       condition: 'New',
       tags: '',
       isCustomTag: false,
+      isCustomCategory: false,
       visibleToUsers: true
     });
     setEditingComponent(null);
@@ -133,7 +135,7 @@ export function Inventory() {
     try {
       const token = sessionStorage.getItem('token');
 
-      const category = formData.category === 'custom' ? formData.customCategory : formData.category;
+      const category = formData.isCustomCategory ? formData.customCategory : formData.category;
 
       const payload = {
         name: formData.name,
@@ -177,7 +179,7 @@ export function Inventory() {
     try {
       const token = sessionStorage.getItem('token');
 
-      const category = formData.category === 'custom' ? formData.customCategory : formData.category;
+      const category = formData.isCustomCategory ? formData.customCategory : formData.category;
 
       const payload = {
         name: formData.name,
@@ -239,8 +241,9 @@ export function Inventory() {
     setEditingComponent(component);
     setFormData({
       name: component.name,
-      category: existingCategories.includes(component.category) ? component.category : 'custom',
+      category: existingCategories.includes(component.category) ? component.category : '',
       customCategory: existingCategories.includes(component.category) ? '' : component.category,
+      isCustomCategory: !existingCategories.includes(component.category),
       quantity: component.quantity.toString(),
       threshold: component.threshold.toString(),
       description: component.description || '',
@@ -730,9 +733,35 @@ export function Inventory() {
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="category">Category *</Label>
+              {formData.isCustomCategory ? (
+                <div className="flex gap-2">
+                  <Input
+                    id="category"
+                    value={formData.customCategory}
+                    onChange={e => setFormData({ ...formData, customCategory: e.target.value })}
+                    placeholder="Enter new category name"
+                    className="flex-1"
+                    autoFocus
+                  />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setFormData({ ...formData, isCustomCategory: false, category: '', customCategory: '' })}
+                    title="Select existing category"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              ) : (
                 <Select
                   value={formData.category}
-                  onValueChange={val => setFormData({ ...formData, category: val, customCategory: '' })}
+                  onValueChange={val => {
+                    if (val === 'new_custom') {
+                      setFormData({ ...formData, isCustomCategory: true, category: '', customCategory: '' });
+                    } else {
+                      setFormData({ ...formData, category: val, customCategory: '' });
+                    }
+                  }}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select or add category" />
@@ -741,23 +770,14 @@ export function Inventory() {
                     {existingCategories.map(cat => (
                       <SelectItem key={cat} value={cat}>{cat}</SelectItem>
                     ))}
-                    <SelectItem value="custom">+ Add New Category</SelectItem>
+                    <SelectItem value="new_custom" className="text-blue-600 font-medium">
+                      + Add New Category
+                    </SelectItem>
                   </SelectContent>
                 </Select>
+              )}
               </div>
             </div>
-
-            {formData.category === 'custom' && (
-              <div className="grid gap-2">
-                <Label htmlFor="customCategory">New Category Name *</Label>
-                <Input
-                  id="customCategory"
-                  value={formData.customCategory}
-                  onChange={e => setFormData({ ...formData, customCategory: e.target.value })}
-                  placeholder="Enter new category name"
-                />
-              </div>
-            )}
 
             <div className="grid grid-cols-3 gap-4">
               <div className="grid gap-2">
@@ -831,12 +851,49 @@ export function Inventory() {
 
             <div className="grid gap-2">
               <Label htmlFor="tags">Tags</Label>
-              <Input
-                id="tags"
-                value={formData.tags}
-                onChange={e => setFormData({ ...formData, tags: e.target.value })}
-                placeholder="IoT, robot, automation"
-              />
+              {formData.isCustomTag ? (
+                <div className="flex gap-2">
+                  <Input
+                    id="tags"
+                    value={formData.tags}
+                    onChange={e => setFormData({ ...formData, tags: e.target.value })}
+                    placeholder="IoT, robot, automation"
+                    className="flex-1"
+                    autoFocus
+                  />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setFormData({ ...formData, isCustomTag: false, tags: '' })}
+                    title="Select existing tag"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              ) : (
+                <Select
+                  value={formData.tags}
+                  onValueChange={val => {
+                    if (val === 'new_custom') {
+                      setFormData({ ...formData, isCustomTag: true, tags: '' });
+                    } else {
+                      setFormData({ ...formData, tags: val });
+                    }
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select tag" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {allTags.map(tag => (
+                      <SelectItem key={tag} value={tag}>{tag}</SelectItem>
+                    ))}
+                    <SelectItem value="new_custom" className="text-blue-600 font-medium">
+                      + Add New Tag
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
             </div>
 
             <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
@@ -863,7 +920,7 @@ export function Inventory() {
               onClick={editingComponent ? handleEditComponent : handleAddComponent}
               disabled={
                 !formData.name ||
-                (!formData.category || (formData.category === 'custom' && !formData.customCategory)) ||
+                (!formData.category && !formData.isCustomCategory) || (formData.isCustomCategory && !formData.customCategory) ||
                 !formData.quantity ||
                 !formData.threshold
               }
