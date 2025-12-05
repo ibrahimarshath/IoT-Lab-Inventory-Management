@@ -1,21 +1,39 @@
-// routes/logs.js
 const router = require('express').Router();
-const LoginLog = require('../models/LoginLog');
+const InventoryLog = require('../models/inventoryLog');
+const ActionLog = require('../models/ActionLog');
 const { jwtAuth, requireRole } = require('../middleware/jwtAuth');
 const asyncHandler = require('../middleware/asyncHandler');
 
-router.get('/login-logs', jwtAuth, requireRole('ADMIN'), asyncHandler(async (req,res) => {
-  const { success, email, page = 1, limit = 200, from, to } = req.query;
-  const filter = {};
-  if (typeof success !== 'undefined') filter.success = success === 'true';
-  if (email) filter.email = email.toLowerCase();
-  if (from || to) filter.createdAt = {};
-  if (from) filter.createdAt.$gte = new Date(from);
-  if (to) filter.createdAt.$lte = new Date(to);
+// Protected routes: admin only for now
+router.use(jwtAuth);
+router.use(requireRole('ADMIN'));
 
-  const skip = (Math.max(1, Number(page)) - 1) * Number(limit);
-  const logs = await LoginLog.find(filter).populate('userId','name email role').sort({ createdAt: -1 }).skip(skip).limit(Number(limit));
-  res.json({ data: logs });
+// GET inventory logs with basic filters
+router.get('/inventory', asyncHandler(async (req, res) => {
+  const { componentId, actorEmail, page = 1, limit = 50 } = req.query;
+  const filter = {};
+  if (componentId) filter.componentId = componentId;
+  if (actorEmail) filter.actorEmail = actorEmail;
+  const skip = (page - 1) * limit;
+  const [total, items] = await Promise.all([
+    InventoryLog.countDocuments(filter),
+    InventoryLog.find(filter).sort({ createdAt: -1 }).skip(skip).limit(Number(limit)).lean()
+  ]);
+  res.json({ data: items, meta: { total, page: Number(page), limit: Number(limit) } });
+}));
+
+// GET action logs
+router.get('/actions', asyncHandler(async (req, res) => {
+  const { action, actorEmail, page = 1, limit = 50 } = req.query;
+  const filter = {};
+  if (action) filter.action = action;
+  if (actorEmail) filter.actorEmail = actorEmail;
+  const skip = (page - 1) * limit;
+  const [total, items] = await Promise.all([
+    ActionLog.countDocuments(filter),
+    ActionLog.find(filter).sort({ createdAt: -1 }).skip(skip).limit(Number(limit)).lean()
+  ]);
+  res.json({ data: items, meta: { total, page: Number(page), limit: Number(limit) } });
 }));
 
 module.exports = router;
