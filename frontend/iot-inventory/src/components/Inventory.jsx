@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 import { Switch } from './ui/switch';
-import { Package, Search, Plus, Upload, Eye, EyeOff } from 'lucide-react';
+import { Package, Search, Plus, Upload, Eye, EyeOff, Edit, Trash2 } from 'lucide-react';
 import { BulkComponentUpload } from './BulkComponentUpload';
 import { toast } from 'sonner';
 
@@ -20,14 +20,17 @@ export function Inventory() {
   const [filterCategory, setFilterCategory] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
 
-  // Add Component Dialog
+  // Dialog states
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isBulkUploadOpen, setIsBulkUploadOpen] = useState(false);
+  const [editingComponent, setEditingComponent] = useState(null);
 
   // Form states
   const [formData, setFormData] = useState({
     name: '',
     category: '',
+    customCategory: '',
     quantity: '',
     threshold: '',
     description: '',
@@ -58,7 +61,9 @@ export function Inventory() {
     }
   };
 
-  const categories = ['all', ...Array.from(new Set(components.map(c => c.category)))];
+  // Get unique categories from existing components
+  const existingCategories = Array.from(new Set(components.map(c => c.category))).sort();
+  const categories = ['all', ...existingCategories];
 
   const getStockStatus = (component) => {
     if (component.available === 0) return 'out-of-stock';
@@ -78,7 +83,6 @@ export function Inventory() {
     return matchesSearch && matchesCategory && matchesStatus;
   });
 
-  const totalValue = components.reduce((sum, c) => sum + (c.quantity * (c.value || 0)), 0);
   const totalItems = components.reduce((sum, c) => sum + c.quantity, 0);
   const lowStockCount = components.filter(c => getStockStatus(c) === 'low-stock').length;
   const outOfStockCount = components.filter(c => getStockStatus(c) === 'out-of-stock').length;
@@ -87,6 +91,7 @@ export function Inventory() {
     setFormData({
       name: '',
       category: '',
+      customCategory: '',
       quantity: '',
       threshold: '',
       description: '',
@@ -96,15 +101,18 @@ export function Inventory() {
       tags: '',
       visibleToUsers: true
     });
+    setEditingComponent(null);
   };
 
   const handleAddComponent = async () => {
     try {
       const token = sessionStorage.getItem('token');
 
+      const category = formData.category === 'custom' ? formData.customCategory : formData.category;
+
       const payload = {
         name: formData.name,
-        category: formData.category,
+        category: category,
         quantity: parseInt(formData.quantity),
         available: parseInt(formData.quantity),
         threshold: parseInt(formData.threshold),
@@ -138,6 +146,86 @@ export function Inventory() {
       console.error('Error adding component:', error);
       toast.error(error.message || 'Failed to add component');
     }
+  };
+
+  const handleEditComponent = async () => {
+    try {
+      const token = sessionStorage.getItem('token');
+
+      const category = formData.category === 'custom' ? formData.customCategory : formData.category;
+
+      const payload = {
+        name: formData.name,
+        category: category,
+        quantity: parseInt(formData.quantity),
+        threshold: parseInt(formData.threshold),
+        description: formData.description,
+        datasheet: formData.datasheet,
+        purchaseDate: formData.purchaseDate,
+        condition: formData.condition,
+        tags: formData.tags ? formData.tags.split(',').map(t => t.trim()) : [],
+        visibleToUsers: formData.visibleToUsers
+      };
+
+      const response = await fetch(`/api/components/${editingComponent._id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) throw new Error('Failed to update component');
+
+      toast.success('Component updated successfully');
+      setIsEditDialogOpen(false);
+      resetForm();
+      fetchInventory();
+    } catch (error) {
+      console.error('Error updating component:', error);
+      toast.error('Failed to update component');
+    }
+  };
+
+  const handleDeleteComponent = async (componentId, componentName) => {
+    if (!confirm(`Are you sure you want to delete "${componentName}"?`)) return;
+
+    try {
+      const token = sessionStorage.getItem('token');
+      const response = await fetch(`/api/components/${componentId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) throw new Error('Failed to delete component');
+
+      toast.success('Component deleted successfully');
+      fetchInventory();
+    } catch (error) {
+      console.error('Error deleting component:', error);
+      toast.error('Failed to delete component');
+    }
+  };
+
+  const openEditDialog = (component) => {
+    setEditingComponent(component);
+    setFormData({
+      name: component.name,
+      category: existingCategories.includes(component.category) ? component.category : 'custom',
+      customCategory: existingCategories.includes(component.category) ? '' : component.category,
+      quantity: component.quantity.toString(),
+      threshold: component.threshold.toString(),
+      description: component.description || '',
+      datasheet: component.datasheet || '',
+      purchaseDate: component.purchaseDate ? new Date(component.purchaseDate).toISOString().split('T')[0] : '',
+      condition: component.condition,
+      tags: (component.tags || []).join(', '),
+      visibleToUsers: component.visibleToUsers !== false
+    });
+    setIsEditDialogOpen(true);
   };
 
   const toggleVisibility = async (componentId, currentVisibility) => {
@@ -318,7 +406,7 @@ export function Inventory() {
                   <TableHead className="text-center">Threshold</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-center">Visibility</TableHead>
-                  <TableHead>Last Updated</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -375,8 +463,27 @@ export function Inventory() {
                           )}
                         </Button>
                       </TableCell>
-                      <TableCell className="text-sm text-gray-600">
-                        {new Date(component.createdAt || component.purchaseDate).toLocaleDateString()}
+                      <TableCell className="text-right">
+                        <div className="flex gap-2 justify-end">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => openEditDialog(component)}
+                            className="gap-1"
+                          >
+                            <Edit className="w-3 h-3" />
+                            Edit
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDeleteComponent(component._id, component.name)}
+                            className="gap-1 text-red-600 hover:text-red-700"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                            Delete
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   );
@@ -387,12 +494,20 @@ export function Inventory() {
         </CardContent>
       </Card>
 
-      {/* Add Component Dialog */}
-      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+      {/* Add/Edit Component Dialog */}
+      <Dialog open={isAddDialogOpen || isEditDialogOpen} onOpenChange={(open) => {
+        if (!open) {
+          setIsAddDialogOpen(false);
+          setIsEditDialogOpen(false);
+          resetForm();
+        }
+      }}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Add New Component</DialogTitle>
-            <DialogDescription>Enter the component details to add to inventory</DialogDescription>
+            <DialogTitle>{editingComponent ? 'Edit Component' : 'Add New Component'}</DialogTitle>
+            <DialogDescription>
+              {editingComponent ? 'Update the component details' : 'Enter the component details to add to inventory'}
+            </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-2 gap-4">
@@ -407,23 +522,34 @@ export function Inventory() {
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="category">Category *</Label>
-                <Select value={formData.category} onValueChange={val => setFormData({ ...formData, category: val })}>
+                <Select
+                  value={formData.category}
+                  onValueChange={val => setFormData({ ...formData, category: val, customCategory: '' })}
+                >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select category" />
+                    <SelectValue placeholder="Select or add category" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Microcontroller">Microcontroller</SelectItem>
-                    <SelectItem value="Sensor">Sensor</SelectItem>
-                    <SelectItem value="Actuator">Actuator</SelectItem>
-                    <SelectItem value="Single Board Computer">Single Board Computer</SelectItem>
-                    <SelectItem value="Power">Power</SelectItem>
-                    <SelectItem value="Display">Display</SelectItem>
-                    <SelectItem value="Communication">Communication</SelectItem>
-                    <SelectItem value="Other">Other</SelectItem>
+                    {existingCategories.map(cat => (
+                      <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                    ))}
+                    <SelectItem value="custom">+ Add New Category</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
+
+            {formData.category === 'custom' && (
+              <div className="grid gap-2">
+                <Label htmlFor="customCategory">New Category Name *</Label>
+                <Input
+                  id="customCategory"
+                  value={formData.customCategory}
+                  onChange={e => setFormData({ ...formData, customCategory: e.target.value })}
+                  placeholder="Enter new category name"
+                />
+              </div>
+            )}
 
             <div className="grid grid-cols-3 gap-4">
               <div className="grid gap-2">
@@ -518,12 +644,23 @@ export function Inventory() {
             </div>
           </div>
           <div className="flex justify-end gap-3">
-            <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => {
+              setIsAddDialogOpen(false);
+              setIsEditDialogOpen(false);
+              resetForm();
+            }}>
+              Cancel
+            </Button>
             <Button
-              onClick={handleAddComponent}
-              disabled={!formData.name || !formData.category || !formData.quantity || !formData.threshold}
+              onClick={editingComponent ? handleEditComponent : handleAddComponent}
+              disabled={
+                !formData.name ||
+                (!formData.category || (formData.category === 'custom' && !formData.customCategory)) ||
+                !formData.quantity ||
+                !formData.threshold
+              }
             >
-              Add Component
+              {editingComponent ? 'Update Component' : 'Add Component'}
             </Button>
           </div>
         </DialogContent>
