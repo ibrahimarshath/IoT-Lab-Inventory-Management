@@ -308,273 +308,255 @@ export function BorrowingManagement() {
     <div className="p-8">
       <div className="mb-8">
         <div className="flex items-center justify-between mb-6">
-          <div>
-            <h2 className="text-gray-900 mb-2">Borrow & Return Management</h2>
-            <p className="text-gray-600">Track all component borrowing activities</p>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" className="gap-2 relative" onClick={() => setShowBorrowRequests(true)}>
-              <Bell className="w-4 h-4" />
-              Requests
-              {pendingRequestsCount > 0 && (
-                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center shadow-sm border border-white">
-                  {pendingRequestsCount}
-                </span>
-              )}
-            </Button>
-            <Button className="gap-2" onClick={() => setIsAddDialogOpen(true)}>
-              <Plus className="w-4 h-4" />
-              New Borrowing
-            </Button>
-          </div>
-          <Dialog open={isAddDialogOpen} onOpenChange={handleDialogChange}>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>Record New Borrowing</DialogTitle>
-                <DialogDescription>Enter the borrowing details</DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
+        </div>
+        <Dialog open={isAddDialogOpen} onOpenChange={handleDialogChange}>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Record New Borrowing</DialogTitle>
+              <DialogDescription>Enter the borrowing details</DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="userName">Student Name (for reference)</Label>
+                <Input id="userName" placeholder="Enter student name" value={formUserName} onChange={e => setFormUserName(e.target.value)} />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="userName">Student Name (for reference)</Label>
-                  <Input id="userName" placeholder="Enter student name" value={formUserName} onChange={e => setFormUserName(e.target.value)} />
+                  <Label htmlFor="userEmail">Email (Must match registered user)</Label>
+                  <Input id="userEmail" type="email" placeholder="student@example.edu" value={formUserEmail} onChange={e => setFormUserEmail(e.target.value)} />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="userPhone">Phone Number</Label>
+                  <Input id="userPhone" type="tel" placeholder="+1 (555) 000-0000" value={formUserPhone} onChange={e => setFormUserPhone(e.target.value)} />
+                </div>
+              </div>
+
+              <div className="border-t pt-4">
+                <Label className="mb-3 block">Components to Borrow</Label>
+
+                {/* Add Component Section */}
+                <div className="grid grid-cols-12 gap-2 mb-3">
+                  <div className="col-span-7">
+                    <Select value={formComponent} onValueChange={setFormComponent}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select component" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {components.filter(comp => !selectedComponents.find(sc => sc.componentId === comp._id)).map(comp => (
+                          <SelectItem key={comp._id} value={comp.name}>
+                            {comp.name} ({comp.available} available)
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="col-span-3">
+                    <Input type="number" min="1" placeholder="Qty" value={formQuantity} onChange={e => setFormQuantity(e.target.value)} />
+                  </div>
+                  <div className="col-span-2">
+                    <Button type="button" className="w-full gap-1" size="sm" onClick={handleAddComponentToSelection} disabled={!formComponent || !formQuantity || parseInt(formQuantity) <= 0}>
+                      <Plus className="w-4 h-4" />
+                      Add
+                    </Button>
+                  </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="userEmail">Email (Must match registered user)</Label>
-                    <Input id="userEmail" type="email" placeholder="student@example.edu" value={formUserEmail} onChange={e => setFormUserEmail(e.target.value)} />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="userPhone">Phone Number</Label>
-                    <Input id="userPhone" type="tel" placeholder="+1 (555) 000-0000" value={formUserPhone} onChange={e => setFormUserPhone(e.target.value)} />
-                  </div>
-                </div>
-
-                <div className="border-t pt-4">
-                  <Label className="mb-3 block">Components to Borrow</Label>
-
-                  {/* Add Component Section */}
-                  <div className="grid grid-cols-12 gap-2 mb-3">
-                    <div className="col-span-7">
-                      <Select value={formComponent} onValueChange={setFormComponent}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select component" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {components.filter(comp => !selectedComponents.find(sc => sc.componentId === comp._id)).map(comp => (
-                            <SelectItem key={comp._id} value={comp.name}>
-                              {comp.name} ({comp.available} available)
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="col-span-3">
-                      <Input type="number" min="1" placeholder="Qty" value={formQuantity} onChange={e => setFormQuantity(e.target.value)} />
-                    </div>
-                    <div className="col-span-2">
-                      <Button type="button" className="w-full gap-1" size="sm" onClick={handleAddComponentToSelection} disabled={!formComponent || !formQuantity || parseInt(formQuantity) <= 0}>
-                        <Plus className="w-4 h-4" />
-                        Add
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* Selected Components List */}
-                  {selectedComponents.length > 0 && (
-                    <div className="space-y-2 mb-3">
-                      {selectedComponents.map(sc => (
-                        <div key={sc.componentId} className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
-                          <div className="flex items-center gap-3">
-                            <Badge variant="secondary">{sc.quantity}x</Badge>
-                            <span className="text-sm">{sc.componentName}</span>
-                          </div>
-                          <Button type="button" variant="ghost" size="sm" onClick={() => handleRemoveComponentFromSelection(sc.componentId)} className="text-red-600 hover:text-red-700 hover:bg-red-50">
-                            <X className="w-4 h-4" />
-                          </Button>
+                {/* Selected Components List */}
+                {selectedComponents.length > 0 && (
+                  <div className="space-y-2 mb-3">
+                    {selectedComponents.map(sc => (
+                      <div key={sc.componentId} className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <Badge variant="secondary">{sc.quantity}x</Badge>
+                          <span className="text-sm">{sc.componentName}</span>
                         </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {selectedComponents.length === 0 && (
-                    <p className="text-sm text-gray-500 text-center py-4 bg-gray-50 rounded-lg">
-                      No components added yet
-                    </p>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="returnDate">Expected Return Date</Label>
-                    <Input id="returnDate" type="date" value={formReturnDate} onChange={e => setFormReturnDate(e.target.value)} />
+                        <Button type="button" variant="ghost" size="sm" onClick={() => handleRemoveComponentFromSelection(sc.componentId)} className="text-red-600 hover:text-red-700 hover:bg-red-50">
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ))}
                   </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="purpose">Purpose / Project</Label>
-                    <Input id="purpose" placeholder="e.g., Line follower robot" value={formPurpose} onChange={e => setFormPurpose(e.target.value)} />
-                  </div>
-                </div>
+                )}
+
+                {selectedComponents.length === 0 && (
+                  <p className="text-sm text-gray-500 text-center py-4 bg-gray-50 rounded-lg">
+                    No components added yet
+                  </p>
+                )}
               </div>
-              <div className="flex justify-end gap-3 border-t pt-4">
-                <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>Cancel</Button>
-                <Button onClick={handleRecordBorrowing} disabled={selectedComponents.length === 0 || !formUserEmail || !formReturnDate}>
-                  Record Borrowing
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-        </div>
 
-        {/* Search Bar */}
-        <div className="relative mb-6">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <Input placeholder="Search by user name, email, or component..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10" />
-        </div>
-
-        {/* Statistics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setActiveTab('all')}>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600 mb-1">All Borrowings</p>
-                  <p className="text-3xl text-gray-900">{borrowings.length}</p>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="returnDate">Expected Return Date</Label>
+                  <Input id="returnDate" type="date" value={formReturnDate} onChange={e => setFormReturnDate(e.target.value)} />
                 </div>
-                <div className="bg-purple-50 text-purple-600 p-3 rounded-lg">
-                  <CheckCircle className="w-6 h-6" />
+                <div className="grid gap-2">
+                  <Label htmlFor="purpose">Purpose / Project</Label>
+                  <Input id="purpose" placeholder="e.g., Line follower robot" value={formPurpose} onChange={e => setFormPurpose(e.target.value)} />
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setActiveTab('active')}>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600 mb-1">Active Borrowings</p>
-                  <p className="text-3xl text-gray-900">{activeBorrowings.length}</p>
-                </div>
-                <div className="bg-blue-50 text-blue-600 p-3 rounded-lg">
-                  <Clock className="w-6 h-6" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setActiveTab('overdue')}>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600 mb-1">Overdue Items</p>
-                  <p className="text-3xl text-gray-900">{overdueBorrowings.length}</p>
-                </div>
-                <div className="bg-red-50 text-red-600 p-3 rounded-lg">
-                  <AlertCircle className="w-6 h-6" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setActiveTab('returned')}>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600 mb-1">Returned This Month</p>
-                  <p className="text-3xl text-gray-900">{returnedBorrowings.length}</p>
-                </div>
-                <div className="bg-green-50 text-green-600 p-3 rounded-lg">
-                  <CheckCircle className="w-6 h-6" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-
-      {/* Tabs for different views */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="all">All Borrowings</TabsTrigger>
-          <TabsTrigger value="active">Active ({activeBorrowings.length})</TabsTrigger>
-          <TabsTrigger value="overdue">Overdue ({overdueBorrowings.length})</TabsTrigger>
-          <TabsTrigger value="returned">Returned ({returnedBorrowings.length})</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="all">
-          <Card>
-            <CardHeader>
-              <CardTitle>All Borrowings</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <BorrowingTable borrowings={filteredBorrowings(borrowings)} />
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="active">
-          <Card>
-            <CardHeader>
-              <CardTitle>Active Borrowings</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <BorrowingTable borrowings={filteredBorrowings(activeBorrowings)} />
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="overdue">
-          <Card>
-            <CardHeader>
-              <CardTitle>Overdue Items</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <BorrowingTable borrowings={filteredBorrowings(overdueBorrowings)} />
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="returned">
-          <Card>
-            <CardHeader>
-              <CardTitle>Returned Borrowings</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <BorrowingTable borrowings={filteredBorrowings(returnedBorrowings)} />
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-
-      {/* User Details Dialog */}
-      <Dialog open={userDialogOpen} onOpenChange={setUserDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>User Details</DialogTitle>
-          </DialogHeader>
-          <div className="py-4">
-            <div className="flex flex-col gap-4">
-              <div className="flex items-center gap-2 text-sm">
-                <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">
-                  {selectedUser?.name?.charAt(0).toUpperCase()}
-                </div>
-                <div>
-                  <p className="font-medium text-gray-900">{selectedUser?.name}</p>
-                  <p className="text-xs text-gray-500">Student</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 text-sm">
-                <Mail className="w-4 h-4 text-gray-400" />
-                <span className="text-gray-600">Email:</span>
-                <span className="text-gray-900">{selectedUser?.email}</span>
               </div>
             </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+            <div className="flex justify-end gap-3 border-t pt-4">
+              <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>Cancel</Button>
+              <Button onClick={handleRecordBorrowing} disabled={selectedComponents.length === 0 || !formUserEmail || !formReturnDate}>
+                Record Borrowing
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
 
-      {/* Borrow Requests Dialog */}
-      <Dialog open={showBorrowRequests} onOpenChange={setShowBorrowRequests}>
-        <DialogContent className="sm:max-w-[95vw] w-[95vw] max-h-[90vh] flex flex-col p-0 bg-white gap-0 overflow-hidden">
-          <BorrowRequests adminUsername={sessionStorage.getItem('user') ? JSON.parse(sessionStorage.getItem('user')).name : 'Admin'} />
-        </DialogContent>
-      </Dialog>
+      {/* Search Bar */}
+      <div className="relative mb-6">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+        <Input placeholder="Search by user name, email, or component..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10" />
+      </div>
+
+      {/* Statistics Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setActiveTab('all')}>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600 mb-1">All Borrowings</p>
+                <p className="text-3xl text-gray-900">{borrowings.length}</p>
+              </div>
+              <div className="bg-purple-50 text-purple-600 p-3 rounded-lg">
+                <CheckCircle className="w-6 h-6" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setActiveTab('active')}>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600 mb-1">Active Borrowings</p>
+                <p className="text-3xl text-gray-900">{activeBorrowings.length}</p>
+              </div>
+              <div className="bg-blue-50 text-blue-600 p-3 rounded-lg">
+                <Clock className="w-6 h-6" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setActiveTab('overdue')}>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600 mb-1">Overdue Items</p>
+                <p className="text-3xl text-gray-900">{overdueBorrowings.length}</p>
+              </div>
+              <div className="bg-red-50 text-red-600 p-3 rounded-lg">
+                <AlertCircle className="w-6 h-6" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setActiveTab('returned')}>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600 mb-1">Returned This Month</p>
+                <p className="text-3xl text-gray-900">{returnedBorrowings.length}</p>
+              </div>
+              <div className="bg-green-50 text-green-600 p-3 rounded-lg">
+                <CheckCircle className="w-6 h-6" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
+
+      {/* Tabs for different views */ }
+  <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+    <TabsList>
+      <TabsTrigger value="all">All Borrowings</TabsTrigger>
+      <TabsTrigger value="active">Active ({activeBorrowings.length})</TabsTrigger>
+      <TabsTrigger value="overdue">Overdue ({overdueBorrowings.length})</TabsTrigger>
+      <TabsTrigger value="returned">Returned ({returnedBorrowings.length})</TabsTrigger>
+    </TabsList>
+
+    <TabsContent value="all">
+      <Card>
+        <CardHeader>
+          <CardTitle>All Borrowings</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <BorrowingTable borrowings={filteredBorrowings(borrowings)} />
+        </CardContent>
+      </Card>
+    </TabsContent>
+
+    <TabsContent value="active">
+      <Card>
+        <CardHeader>
+          <CardTitle>Active Borrowings</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <BorrowingTable borrowings={filteredBorrowings(activeBorrowings)} />
+        </CardContent>
+      </Card>
+    </TabsContent>
+
+    <TabsContent value="overdue">
+      <Card>
+        <CardHeader>
+          <CardTitle>Overdue Items</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <BorrowingTable borrowings={filteredBorrowings(overdueBorrowings)} />
+        </CardContent>
+      </Card>
+    </TabsContent>
+
+    <TabsContent value="returned">
+      <Card>
+        <CardHeader>
+          <CardTitle>Returned Borrowings</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <BorrowingTable borrowings={filteredBorrowings(returnedBorrowings)} />
+        </CardContent>
+      </Card>
+    </TabsContent>
+  </Tabs>
+
+  {/* User Details Dialog */ }
+  <Dialog open={userDialogOpen} onOpenChange={setUserDialogOpen}>
+    <DialogContent>
+      <DialogHeader>
+        <DialogTitle>User Details</DialogTitle>
+      </DialogHeader>
+      <div className="py-4">
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center gap-2 text-sm">
+            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">
+              {selectedUser?.name?.charAt(0).toUpperCase()}
+            </div>
+            <div>
+              <p className="font-medium text-gray-900">{selectedUser?.name}</p>
+              <p className="text-xs text-gray-500">Student</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 text-sm">
+            <Mail className="w-4 h-4 text-gray-400" />
+            <span className="text-gray-600">Email:</span>
+            <span className="text-gray-900">{selectedUser?.email}</span>
+          </div>
+        </div>
+      </div>
+    </DialogContent>
+  </Dialog>
+
+  {/* Borrow Requests Dialog */ }
+  <Dialog open={showBorrowRequests} onOpenChange={setShowBorrowRequests}>
+    <DialogContent className="sm:max-w-[95vw] w-[95vw] max-h-[90vh] flex flex-col p-0 bg-white gap-0 overflow-hidden">
+      <BorrowRequests adminUsername={sessionStorage.getItem('user') ? JSON.parse(sessionStorage.getItem('user')).name : 'Admin'} />
+    </DialogContent>
+  </Dialog>
+    </div >
   );
 }
