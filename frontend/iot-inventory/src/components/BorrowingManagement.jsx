@@ -472,15 +472,15 @@ export function BorrowingManagement() {
               </div>
             </CardContent>
           </Card>
-          <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setActiveTab('returned')}>
+          <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setShowBorrowRequests(true)}>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600 mb-1">Returned This Month</p>
-                  <p className="text-3xl text-gray-900">{returnedBorrowings.length}</p>
+                  <p className="text-sm text-gray-600 mb-1">Borrow Requests</p>
+                  <p className="text-3xl text-gray-900">{pendingRequestsCount}</p>
                 </div>
-                <div className="bg-green-50 text-green-600 p-3 rounded-lg">
-                  <CheckCircle className="w-6 h-6" />
+                <div className="bg-orange-50 text-orange-600 p-3 rounded-lg">
+                  <Bell className="w-6 h-6" />
                 </div>
               </div>
             </CardContent>
