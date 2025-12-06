@@ -60,7 +60,7 @@ export function BorrowRequests() {
         components: []
       };
     }
-    groups[groupId].components.push(request);
+    groups[groupKey].components.push(request);
     return groups;
   }, {});
 
