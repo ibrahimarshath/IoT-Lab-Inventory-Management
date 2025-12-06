@@ -7,14 +7,16 @@ import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
-import { Clock, CheckCircle, XCircle, AlertCircle, Mail, Phone, User } from 'lucide-react';
+import { Clock, CheckCircle, XCircle, AlertCircle, Mail, Phone, ChevronDown, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 
 export function BorrowRequests() {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedRequest, setSelectedRequest] = useState(null);
+  const [expandedGroups, setExpandedGroups] = useState(new Set());
+  const [editedQuantities, setEditedQuantities] = useState({});
   const [isResponseDialogOpen, setIsResponseDialogOpen] = useState(false);
+  const [selectedGroup, setSelectedGroup] = useState(null);
   const [responseAction, setResponseAction] = useState('');
   const [adminResponse, setAdminResponse] = useState('');
 
@@ -25,14 +27,11 @@ export function BorrowRequests() {
   const fetchRequests = async () => {
     try {
       const token = sessionStorage.getItem('token');
-      console.log('Fetching borrow requests...');
       const response = await fetch('/api/borrow-requests', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      console.log('Response status:', response.status);
       if (!response.ok) throw new Error('Failed to fetch requests');
       const data = await response.json();
-      console.log('Fetched requests:', data);
       setRequests(data);
     } catch (error) {
       console.error('Error fetching requests:', error);
@@ -42,56 +41,98 @@ export function BorrowRequests() {
     }
   };
 
-  const handleOpenResponseDialog = (request, action) => {
-    setSelectedRequest(request);
+  // Group requests by requestGroupId
+  const groupedRequests = requests.reduce((groups, request) => {
+    const groupId = request.requestGroupId || request.id;
+    if (!groups[groupId]) {
+      groups[groupId] = {
+        groupId,
+        userName: request.userName,
+        userEmail: request.userEmail,
+        userPhone: request.userPhone,
+        requestDate: request.requestDate,
+        expectedReturnDate: request.expectedReturnDate,
+        purpose: request.purpose,
+        status: request.status,
+        components: []
+      };
+    }
+    groups[groupId].components.push(request);
+    return groups;
+  }, {});
+
+  const groupedArray = Object.values(groupedRequests);
+  const pendingGroups = groupedArray.filter(g => g.status === 'pending');
+  const processedGroups = groupedArray.filter(g => g.status !== 'pending');
+
+  const toggleGroup = (groupId) => {
+    const newExpanded = new Set(expandedGroups);
+    if (newExpanded.has(groupId)) {
+      newExpanded.delete(groupId);
+    } else {
+      newExpanded.add(groupId);
+    }
+    setExpandedGroups(newExpanded);
+  };
+
+  const updateQuantity = (requestId, newQuantity) => {
+    setEditedQuantities(prev => ({
+      ...prev,
+      [requestId]: newQuantity
+    }));
+  };
+
+  const handleOpenResponseDialog = (group, action) => {
+    setSelectedGroup(group);
     setResponseAction(action);
     setAdminResponse('');
     setIsResponseDialogOpen(true);
   };
 
   const handleSubmitResponse = async () => {
+    if (responseAction === 'reject' && !adminResponse.trim()) {
+      toast.error('Please provide a reason for rejection');
+      return;
+    }
+
     try {
       const token = sessionStorage.getItem('token');
       const endpoint = responseAction === 'approve' ? 'approve' : 'reject';
 
-      const response = await fetch(`/api/borrow-requests/${selectedRequest.id}/${endpoint}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ adminResponse })
+      // Process each component in the group
+      const promises = selectedGroup.components.map(request => {
+        const quantity = editedQuantities[request.id] || request.quantity;
+        return fetch(`/api/borrow-requests/${request.id}/${endpoint}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            adminResponse,
+            approvedQuantity: responseAction === 'approve' ? quantity : undefined
+          })
+        });
       });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || `Failed to ${responseAction} request`);
+      const responses = await Promise.all(promises);
+      const failed = responses.some(r => !r.ok);
+
+      if (failed) {
+        const failedResponse = responses.find(r => !r.ok);
+        const errorData = await failedResponse.json();
+        throw new Error(errorData.message || `Failed to ${responseAction} request`);
       }
 
       toast.success(`Request ${responseAction}d successfully`);
       setIsResponseDialogOpen(false);
+      setEditedQuantities({});
       fetchRequests();
     } catch (error) {
       console.error(`Error ${responseAction}ing request:`, error);
       toast.error(error.message || `Failed to ${responseAction} request`);
     }
   };
-
-  const getStatusBadge = (status) => {
-    switch (status) {
-      case 'pending':
-        return <Badge className="bg-yellow-500"><Clock className="w-3 h-3 mr-1" />Pending</Badge>;
-      case 'approved':
-        return <Badge className="bg-green-500"><CheckCircle className="w-3 h-3 mr-1" />Approved</Badge>;
-      case 'rejected':
-        return <Badge variant="destructive"><XCircle className="w-3 h-3 mr-1" />Rejected</Badge>;
-      default:
-        return <Badge variant="secondary">{status}</Badge>;
-    }
-  };
-
-  const pendingRequests = requests.filter(r => r.status === 'pending');
-  const processedRequests = requests.filter(r => r.status !== 'pending');
 
   if (loading) {
     return (
@@ -108,7 +149,7 @@ export function BorrowRequests() {
       <div className="mb-8">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-gray-900 mb-2">Borrow Requests</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Borrow Requests</h2>
             <p className="text-gray-600">Review and manage student borrow requests</p>
           </div>
           <div className="flex gap-4">
@@ -117,7 +158,7 @@ export function BorrowRequests() {
                 <Clock className="w-5 h-5 text-yellow-600" />
                 <div>
                   <p className="text-sm text-gray-600">Pending</p>
-                  <p className="text-2xl font-bold text-gray-900">{pendingRequests.length}</p>
+                  <p className="text-2xl font-bold text-gray-900">{pendingGroups.length}</p>
                 </div>
               </div>
             </Card>
@@ -126,7 +167,7 @@ export function BorrowRequests() {
                 <CheckCircle className="w-5 h-5 text-green-600" />
                 <div>
                   <p className="text-sm text-gray-600">Processed</p>
-                  <p className="text-2xl font-bold text-gray-900">{processedRequests.length}</p>
+                  <p className="text-2xl font-bold text-gray-900">{processedGroups.length}</p>
                 </div>
               </div>
             </Card>
@@ -134,132 +175,186 @@ export function BorrowRequests() {
         </div>
       </div>
 
-      {pendingRequests.length > 0 && (
+      {/* Pending Requests */}
+      {pendingGroups.length > 0 && (
         <Card className="mb-6">
-          <CardHeader>
+          <CardHeader className="bg-yellow-50">
             <CardTitle className="flex items-center gap-2">
               <AlertCircle className="w-5 h-5 text-yellow-600" />
-              Pending Requests ({pendingRequests.length})
+              Pending Requests ({pendingGroups.length})
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Student</TableHead>
-                  <TableHead>Component</TableHead>
-                  <TableHead className="text-center">Quantity</TableHead>
-                  <TableHead>Request Date</TableHead>
-                  <TableHead>Expected Return</TableHead>
-                  <TableHead>Purpose</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {pendingRequests.map(request => (
-                  <TableRow key={request.id}>
-                    <TableCell>
-                      <div>
-                        <p className="font-medium text-gray-900">{request.userName}</p>
-                        <div className="flex flex-col gap-1 mt-1">
-                          <p className="text-xs text-gray-600 flex items-center gap-1">
-                            <Mail className="w-3 h-3" />{request.userEmail}
-                          </p>
-                          <p className="text-xs text-gray-600 flex items-center gap-1">
-                            <Phone className="w-3 h-3" />{request.userPhone}
-                          </p>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="font-medium">{request.componentName}</TableCell>
-                    <TableCell className="text-center">{request.quantity}</TableCell>
-                    <TableCell>{new Date(request.requestDate).toLocaleDateString()}</TableCell>
-                    <TableCell>{new Date(request.expectedReturnDate).toLocaleDateString()}</TableCell>
-                    <TableCell>
-                      <p className="text-sm max-w-xs truncate" title={request.purpose}>
-                        {request.purpose}
-                      </p>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex gap-2 justify-end">
-                        <Button
-                          size="sm"
-                          className="bg-green-600 hover:bg-green-700"
-                          onClick={() => handleOpenResponseDialog(request, 'approve')}
-                        >
-                          <CheckCircle className="w-3 h-3 mr-1" />
-                          Approve
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          onClick={() => handleOpenResponseDialog(request, 'reject')}
-                        >
-                          <XCircle className="w-3 h-3 mr-1" />
-                          Reject
-                        </Button>
-                      </div>
-                    </TableCell>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-gray-50">
+                    <TableHead className="w-12"></TableHead>
+                    <TableHead>Student</TableHead>
+                    <TableHead>Components</TableHead>
+                    <TableHead>Request Date</TableHead>
+                    <TableHead>Expected Return</TableHead>
+                    <TableHead>Purpose</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {pendingGroups.map(group => (
+                    <>
+                      <TableRow key={group.groupId} className="hover:bg-gray-50 cursor-pointer">
+                        <TableCell onClick={() => toggleGroup(group.groupId)}>
+                          {expandedGroups.has(group.groupId) ? (
+                            <ChevronDown className="w-4 h-4" />
+                          ) : (
+                            <ChevronRight className="w-4 h-4" />
+                          )}
+                        </TableCell>
+                        <TableCell onClick={() => toggleGroup(group.groupId)}>
+                          <div>
+                            <p className="font-medium text-gray-900">{group.userName}</p>
+                            <div className="flex flex-col gap-1 mt-1">
+                              <p className="text-xs text-gray-600 flex items-center gap-1">
+                                <Mail className="w-3 h-3" />{group.userEmail}
+                              </p>
+                              <p className="text-xs text-gray-600 flex items-center gap-1">
+                                <Phone className="w-3 h-3" />{group.userPhone}
+                              </p>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell onClick={() => toggleGroup(group.groupId)}>
+                          <Badge variant="secondary">{group.components.length} items</Badge>
+                        </TableCell>
+                        <TableCell onClick={() => toggleGroup(group.groupId)}>
+                          {new Date(group.requestDate).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell onClick={() => toggleGroup(group.groupId)}>
+                          {new Date(group.expectedReturnDate).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell onClick={() => toggleGroup(group.groupId)}>
+                          <p className="text-sm max-w-xs truncate" title={group.purpose}>
+                            {group.purpose}
+                          </p>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex gap-2 justify-end">
+                            <Button
+                              size="sm"
+                              className="bg-green-600 hover:bg-green-700"
+                              onClick={() => handleOpenResponseDialog(group, 'approve')}
+                            >
+                              <CheckCircle className="w-3 h-3 mr-1" />
+                              Approve
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => handleOpenResponseDialog(group, 'reject')}
+                            >
+                              <XCircle className="w-3 h-3 mr-1" />
+                              Reject
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                      {expandedGroups.has(group.groupId) && (
+                        <TableRow>
+                          <TableCell colSpan={7} className="bg-gray-50 p-4">
+                            <div className="ml-8">
+                              <h4 className="font-medium text-gray-900 mb-3">Requested Components:</h4>
+                              <Table>
+                                <TableHeader>
+                                  <TableRow>
+                                    <TableHead>Component Name</TableHead>
+                                    <TableHead className="text-center">Requested Qty</TableHead>
+                                    <TableHead className="text-center">Approve Qty</TableHead>
+                                  </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                  {group.components.map(component => (
+                                    <TableRow key={component.id}>
+                                      <TableCell className="font-medium">{component.componentName}</TableCell>
+                                      <TableCell className="text-center">{component.quantity}</TableCell>
+                                      <TableCell className="text-center">
+                                        <Input
+                                          type="number"
+                                          min="0"
+                                          max={component.quantity}
+                                          value={editedQuantities[component.id] ?? component.quantity}
+                                          onChange={(e) => updateQuantity(component.id, parseInt(e.target.value) || 0)}
+                                          className="w-20 mx-auto text-center"
+                                        />
+                                      </TableCell>
+                                    </TableRow>
+                                  ))}
+                                </TableBody>
+                              </Table>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </CardContent>
         </Card>
       )}
 
-      {processedRequests.length > 0 && (
+      {/* Processed Requests */}
+      {processedGroups.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>Processed Requests ({processedRequests.length})</CardTitle>
+            <CardTitle>Processed Requests ({processedGroups.length})</CardTitle>
           </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Student</TableHead>
-                  <TableHead>Component</TableHead>
-                  <TableHead className="text-center">Quantity</TableHead>
-                  <TableHead>Request Date</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Response</TableHead>
-                  <TableHead>Responded By</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {processedRequests.map(request => (
-                  <TableRow key={request.id}>
-                    <TableCell>
-                      <div>
-                        <p className="font-medium text-gray-900">{request.userName}</p>
-                        <p className="text-xs text-gray-600">{request.userEmail}</p>
-                      </div>
-                    </TableCell>
-                    <TableCell className="font-medium">{request.componentName}</TableCell>
-                    <TableCell className="text-center">{request.quantity}</TableCell>
-                    <TableCell>{new Date(request.requestDate).toLocaleDateString()}</TableCell>
-                    <TableCell>{getStatusBadge(request.status)}</TableCell>
-                    <TableCell>
-                      <p className="text-sm max-w-xs truncate" title={request.adminResponse}>
-                        {request.adminResponse || 'No response'}
-                      </p>
-                    </TableCell>
-                    <TableCell>
-                      <p className="text-sm text-gray-600">{request.respondedBy || 'N/A'}</p>
-                      {request.responseDate && (
-                        <p className="text-xs text-gray-500">
-                          {new Date(request.responseDate).toLocaleDateString()}
-                        </p>
-                      )}
-                    </TableCell>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-gray-50">
+                    <TableHead>Student</TableHead>
+                    <TableHead>Components</TableHead>
+                    <TableHead>Request Date</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Response</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {processedGroups.map(group => (
+                    <TableRow key={group.groupId}>
+                      <TableCell>
+                        <div>
+                          <p className="font-medium text-gray-900">{group.userName}</p>
+                          <p className="text-xs text-gray-600">{group.userEmail}</p>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="secondary">{group.components.length} items</Badge>
+                      </TableCell>
+                      <TableCell>{new Date(group.requestDate).toLocaleDateString()}</TableCell>
+                      <TableCell>
+                        {group.status === 'approved' ? (
+                          <Badge className="bg-green-500"><CheckCircle className="w-3 h-3 mr-1" />Approved</Badge>
+                        ) : (
+                          <Badge variant="destructive"><XCircle className="w-3 h-3 mr-1" />Rejected</Badge>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <p className="text-sm max-w-xs truncate">
+                          {group.components[0]?.adminResponse || 'No response'}
+                        </p>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </CardContent>
         </Card>
       )}
 
+      {/* Empty State */}
       {requests.length === 0 && (
         <Card>
           <CardContent className="p-12 text-center">
@@ -268,38 +363,61 @@ export function BorrowRequests() {
             <p className="text-gray-500 mb-4">
               Student borrow requests will appear here when they submit requests
             </p>
-            <p className="text-sm text-gray-400">
-              This feature allows students to request components before borrowing
-            </p>
           </CardContent>
         </Card>
       )}
 
+      {/* Response Dialog */}
       <Dialog open={isResponseDialogOpen} onOpenChange={setIsResponseDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>
               {responseAction === 'approve' ? 'Approve' : 'Reject'} Borrow Request
             </DialogTitle>
             <DialogDescription>
               {responseAction === 'approve'
-                ? 'This will create a borrowing record and update component availability.'
-                : 'Provide a reason for rejecting this request.'}
+                ? 'Review the quantities and approve this request. This will create borrowing records and update component availability.'
+                : 'Provide a reason for rejecting this request. The student will see your response.'}
             </DialogDescription>
           </DialogHeader>
 
-          {selectedRequest && (
+          {selectedGroup && (
             <div className="space-y-4">
               <div className="bg-gray-50 p-4 rounded-lg space-y-2">
-                <p className="text-sm"><span className="font-medium">Student:</span> {selectedRequest.userName}</p>
-                <p className="text-sm"><span className="font-medium">Component:</span> {selectedRequest.componentName}</p>
-                <p className="text-sm"><span className="font-medium">Quantity:</span> {selectedRequest.quantity}</p>
-                <p className="text-sm"><span className="font-medium">Purpose:</span> {selectedRequest.purpose}</p>
+                <p className="text-sm"><span className="font-medium">Student:</span> {selectedGroup.userName}</p>
+                <p className="text-sm"><span className="font-medium">Email:</span> {selectedGroup.userEmail}</p>
+                <p className="text-sm"><span className="font-medium">Purpose:</span> {selectedGroup.purpose}</p>
+              </div>
+
+              <div className="border rounded-lg p-4">
+                <h4 className="font-medium mb-3">Components:</h4>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Component</TableHead>
+                      <TableHead className="text-center">Requested</TableHead>
+                      {responseAction === 'approve' && <TableHead className="text-center">Approving</TableHead>}
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {selectedGroup.components.map(component => (
+                      <TableRow key={component.id}>
+                        <TableCell>{component.componentName}</TableCell>
+                        <TableCell className="text-center">{component.quantity}</TableCell>
+                        {responseAction === 'approve' && (
+                          <TableCell className="text-center font-medium text-green-600">
+                            {editedQuantities[component.id] ?? component.quantity}
+                          </TableCell>
+                        )}
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
               </div>
 
               <div>
                 <Label htmlFor="response">
-                  {responseAction === 'approve' ? 'Approval Message (Optional)' : 'Rejection Reason'}
+                  {responseAction === 'approve' ? 'Approval Message (Optional)' : 'Rejection Reason *'}
                 </Label>
                 <Textarea
                   id="response"
@@ -307,9 +425,10 @@ export function BorrowRequests() {
                   onChange={e => setAdminResponse(e.target.value)}
                   placeholder={responseAction === 'approve'
                     ? 'Add any notes or instructions...'
-                    : 'Please provide a reason for rejection...'}
+                    : 'Please provide a reason for rejection (required)...'}
                   rows={3}
                   className="mt-2"
+                  required={responseAction === 'reject'}
                 />
               </div>
 

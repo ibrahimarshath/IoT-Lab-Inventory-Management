@@ -103,7 +103,7 @@ router.put('/:id/approve', auth, async (req, res) => {
             return res.status(403).json({ message: 'Access denied: Admin only' });
         }
 
-        const { adminResponse } = req.body;
+        const { adminResponse, approvedQuantity } = req.body;
 
         const request = await BorrowRequest.findById(req.params.id).populate('user');
         if (!request) {
@@ -114,32 +114,38 @@ router.put('/:id/approve', auth, async (req, res) => {
             return res.status(400).json({ message: 'Request already processed' });
         }
 
+        // Use approved quantity or fall back to requested quantity
+        const quantityToApprove = approvedQuantity !== undefined ? approvedQuantity : request.quantity;
+
         // Check component availability
         const component = await Component.findById(request.componentId);
         if (!component) {
             return res.status(404).json({ message: 'Component not found' });
         }
 
-        if (component.available < request.quantity) {
+        if (component.available < quantityToApprove) {
             return res.status(400).json({ message: `Not enough stock. Available: ${component.available}` });
         }
 
-        // Create Borrowing
-        const newBorrowing = new Borrowing({
-            user: request.user._id,
-            componentName: request.componentName,
-            componentId: request.componentId,
-            quantity: request.quantity,
-            dueDate: request.expectedReturnDate,
-            purpose: request.purpose,
-            status: 'active'
-        });
+        // Only create borrowing if quantity > 0
+        if (quantityToApprove > 0) {
+            // Create Borrowing
+            const newBorrowing = new Borrowing({
+                user: request.user._id,
+                componentName: request.componentName,
+                componentId: request.componentId,
+                quantity: quantityToApprove,
+                dueDate: request.expectedReturnDate,
+                purpose: request.purpose,
+                status: 'active'
+            });
 
-        await newBorrowing.save();
+            await newBorrowing.save();
 
-        // Update Component Availability
-        component.available -= request.quantity;
-        await component.save();
+            // Update Component Availability
+            component.available -= quantityToApprove;
+            await component.save();
+        }
 
         // Update Request
         request.status = 'approved';
