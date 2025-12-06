@@ -36,6 +36,13 @@ export function Dashboard({ onNavigate } = {}) {
       });
       const borrowings = await borrowingsRes.json();
 
+      // Fetch borrow requests
+      const requestsRes = await fetch('/api/borrow-requests', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const requests = await requestsRes.json();
+      const pendingRequests = requests.filter(r => r.status === 'pending');
+
       // Calculate stats
       const activeBorrowings = borrowings.filter(b => b.status === 'active');
       const overdue = borrowings.filter(b =>
@@ -45,7 +52,7 @@ export function Dashboard({ onNavigate } = {}) {
 
       setStats({
         totalComponents: components.length,
-        borrowRequests: 0, // Will be implemented when borrow requests feature is added
+        borrowRequests: pendingRequests.length,
         lowStockItems: lowStock.length,
         activeBorrowings: activeBorrowings.length,
         overdueBorrowings: overdue.length
@@ -295,8 +302,8 @@ export function Dashboard({ onNavigate } = {}) {
                     <div className="w-24 h-2 bg-gray-200 rounded-full overflow-hidden">
                       <div
                         className={`h-full ${(item.available / item.threshold * 100) < 30 ? 'bg-red-500' :
-                            (item.available / item.threshold * 100) < 50 ? 'bg-orange-500' :
-                              'bg-green-500'
+                          (item.available / item.threshold * 100) < 50 ? 'bg-orange-500' :
+                            'bg-green-500'
                           }`}
                         style={{ width: `${Math.min((item.available / item.threshold * 100), 100)}%` }}
                       />
