@@ -22,6 +22,7 @@ export function BorrowingManagement() {
   const [userDialogOpen, setUserDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
   const [showBorrowRequests, setShowBorrowRequests] = useState(false);
+  const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
 
   // Form states
   const [formUserName, setFormUserName] = useState('');
@@ -64,9 +65,36 @@ export function BorrowingManagement() {
     }
   };
 
+  const fetchPendingRequestsCount = async () => {
+    try {
+      const token = sessionStorage.getItem('token');
+      const response = await fetch('/api/borrow-requests', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const requests = await response.json();
+        const pendingRequests = requests.filter(r => r.status === 'pending');
+
+        // Group pending requests to count distinct submissions
+        const groupedPendingRequests = pendingRequests.reduce((groups, request) => {
+          const groupKey = `${request.userEmail}-${new Date(request.requestDate).toDateString()}-${request.purpose}`;
+          if (!groups[groupKey]) {
+            groups[groupKey] = true;
+          }
+          return groups;
+        }, {});
+
+        setPendingRequestsCount(Object.keys(groupedPendingRequests).length);
+      }
+    } catch (error) {
+      console.error('Error fetching pending requests count:', error);
+    }
+  };
+
   useEffect(() => {
     fetchBorrowings();
     fetchComponents();
+    fetchPendingRequestsCount();
   }, []);
 
   const handleUserClick = (userName, userEmail) => {
@@ -285,9 +313,14 @@ export function BorrowingManagement() {
             <p className="text-gray-600">Track all component borrowing activities</p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" className="gap-2" onClick={() => setShowBorrowRequests(true)}>
+            <Button variant="outline" className="gap-2 relative" onClick={() => setShowBorrowRequests(true)}>
               <Bell className="w-4 h-4" />
               Requests
+              {pendingRequestsCount > 0 && (
+                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center shadow-sm border border-white">
+                  {pendingRequestsCount}
+                </span>
+              )}
             </Button>
             <Button className="gap-2" onClick={() => setIsAddDialogOpen(true)}>
               <Plus className="w-4 h-4" />
@@ -500,7 +533,7 @@ export function BorrowingManagement() {
         <TabsContent value="returned">
           <Card>
             <CardHeader>
-              <CardTitle>Return History</CardTitle>
+              <CardTitle>Returned Borrowings</CardTitle>
             </CardHeader>
             <CardContent>
               <BorrowingTable borrowings={filteredBorrowings(returnedBorrowings)} />
@@ -514,19 +547,18 @@ export function BorrowingManagement() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>User Details</DialogTitle>
-            <DialogDescription>Contact information for {selectedUser?.name}</DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-blue-600 text-white flex items-center justify-center">
-                {selectedUser?.name?.charAt(0) || 'U'}
+          <div className="py-4">
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center gap-2 text-sm">
+                <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">
+                  {selectedUser?.name?.charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <p className="font-medium text-gray-900">{selectedUser?.name}</p>
+                  <p className="text-xs text-gray-500">Student</p>
+                </div>
               </div>
-              <div>
-                <p className="text-gray-900">{selectedUser?.name}</p>
-                <p className="text-sm text-gray-500">{selectedUser?.email}</p>
-              </div>
-            </div>
-            <div className="space-y-2 pt-4 border-t border-gray-200">
               <div className="flex items-center gap-2 text-sm">
                 <Mail className="w-4 h-4 text-gray-400" />
                 <span className="text-gray-600">Email:</span>

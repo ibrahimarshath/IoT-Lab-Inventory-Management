@@ -43,6 +43,15 @@ export function Dashboard({ onNavigate } = {}) {
       const requests = await requestsRes.json();
       const pendingRequests = requests.filter(r => r.status === 'pending');
 
+      // Group pending requests to count distinct submissions
+      const groupedPendingRequests = pendingRequests.reduce((groups, request) => {
+        const groupKey = `${request.userEmail}-${new Date(request.requestDate).toDateString()}-${request.purpose}`;
+        if (!groups[groupKey]) {
+          groups[groupKey] = true;
+        }
+        return groups;
+      }, {});
+
       // Calculate stats
       const activeBorrowings = borrowings.filter(b => b.status === 'active');
       const overdue = borrowings.filter(b =>
@@ -52,7 +61,7 @@ export function Dashboard({ onNavigate } = {}) {
 
       setStats({
         totalComponents: components.length,
-        borrowRequests: pendingRequests.length,
+        borrowRequests: Object.keys(groupedPendingRequests).length,
         lowStockItems: lowStock.length,
         activeBorrowings: activeBorrowings.length,
         overdueBorrowings: overdue.length
@@ -259,12 +268,12 @@ export function Dashboard({ onNavigate } = {}) {
                   <div key={index} className="flex items-start justify-between py-3 border-b border-gray-100 last:border-0">
                     <div className="flex-1">
                       <p className="text-sm text-gray-900">{item.user}</p>
-                      <p className="text-sm text-gray-600">{item.item}</p>
+                      <p className="text-sm text-gray-500">
+                        {item.item} <span className="text-red-500">({item.duration} overdue)</span>
+                      </p>
+                      <p className="text-xs text-gray-400">Due {item.dueDate}</p>
                     </div>
-                    <div className="text-right">
-                      <Badge variant="destructive">Overdue</Badge>
-                      <p className="text-xs text-gray-500 mt-1">{item.dueDate}</p>
-                    </div>
+                    <AlertTriangle className="w-5 h-5 text-red-500" />
                   </div>
                 ))}
               </div>
@@ -272,49 +281,6 @@ export function Dashboard({ onNavigate } = {}) {
           </CardContent>
         </Card>
       </div>
-
-      {/* Low Stock Items */}
-      <Card id="low-stock-section">
-        <CardHeader>
-          <CardTitle>Low Stock Alert</CardTitle>
-          <CardDescription>Components below minimum threshold</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {lowStockItems.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              <Package className="w-12 h-12 mx-auto mb-2 text-gray-300" />
-              <p>No low stock items</p>
-              <p className="text-sm">All components are well stocked!</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {lowStockItems.map((item, index) => (
-                <div key={index} className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
-                  <div className="flex-1">
-                    <p className="text-sm text-gray-900">{item.name}</p>
-                    <p className="text-sm text-gray-500">{item.category}</p>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <div className="text-right">
-                      <p className="text-sm text-gray-900">Current: {item.available}</p>
-                      <p className="text-sm text-gray-500">Min: {item.threshold}</p>
-                    </div>
-                    <div className="w-24 h-2 bg-gray-200 rounded-full overflow-hidden">
-                      <div
-                        className={`h-full ${(item.available / item.threshold * 100) < 30 ? 'bg-red-500' :
-                          (item.available / item.threshold * 100) < 50 ? 'bg-orange-500' :
-                            'bg-green-500'
-                          }`}
-                        style={{ width: `${Math.min((item.available / item.threshold * 100), 100)}%` }}
-                      />
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
     </div>
   );
 }

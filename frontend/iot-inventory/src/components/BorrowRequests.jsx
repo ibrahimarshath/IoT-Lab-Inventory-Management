@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
@@ -203,8 +203,8 @@ export function BorrowRequests() {
                 </TableHeader>
                 <TableBody>
                   {pendingGroups.map(group => (
-                    <>
-                      <TableRow key={group.groupId} className="hover:bg-gray-50 cursor-pointer">
+                    <React.Fragment key={group.groupId}>
+                      <TableRow className="hover:bg-gray-50 cursor-pointer">
                         <TableCell onClick={() => toggleGroup(group.groupId)}>
                           {expandedGroups.has(group.groupId) ? (
                             <ChevronDown className="w-4 h-4" />
@@ -240,19 +240,26 @@ export function BorrowRequests() {
                           </p>
                         </TableCell>
                         <TableCell className="text-right">
-                          <div className="flex gap-2 justify-end">
+                          <div className="flex gap-2 justify-end items-center">
                             <Button
                               size="sm"
-                              className="bg-green-600 hover:bg-green-700"
-                              onClick={() => handleOpenResponseDialog(group, 'approve')}
+                              style={{ backgroundColor: '#16a34a', color: 'white' }}
+                              className="hover:bg-green-700 min-w-[90px]"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleOpenResponseDialog(group, 'approve');
+                              }}
                             >
-                              <CheckCircle className="w-3 h-3 mr-1" />
+                              <CheckCircle className="w-4 h-4 mr-2" />
                               Approve
                             </Button>
                             <Button
                               size="sm"
                               variant="destructive"
-                              onClick={() => handleOpenResponseDialog(group, 'reject')}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleOpenResponseDialog(group, 'reject');
+                              }}
                             >
                               <XCircle className="w-3 h-3 mr-1" />
                               Reject
@@ -296,7 +303,7 @@ export function BorrowRequests() {
                           </TableCell>
                         </TableRow>
                       )}
-                    </>
+                    </React.Fragment>
                   ))}
                 </TableBody>
               </Table>
