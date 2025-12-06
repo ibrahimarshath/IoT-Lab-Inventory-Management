@@ -3,7 +3,6 @@ import { Dashboard } from "./components/Dashboard";
 import { BorrowingManagement } from "./components/BorrowingManagement";
 import { Inventory } from "./components/Inventory";
 import { SmartLabControl } from "./components/SmartLabControl";
-import { ActivityLogs } from "./components/ActivityLogs";
 import { UserComponentSearch } from "./components/UserComponentSearch";
 import { UserBorrowings } from "./components/UserBorrowings";
 import { Cart } from "./components/Cart";
@@ -13,7 +12,8 @@ import { Login } from "./components/Login";
 import { Button } from "./components/ui/button";
 import { Toaster } from "./components/ui/sonner";
 import { Users } from "./components/Users";
-import { LayoutDashboard, Package, ArrowLeftRight, ShoppingCart, Lightbulb, Activity, Search, LogOut, ClipboardList, Boxes, Users as UsersIcon } from "lucide-react";
+import { ProcurementList } from "./components/ProcurementList";
+import { LayoutDashboard, Package, ArrowLeftRight, ShoppingCart, Lightbulb, Search, LogOut, ClipboardList, Boxes, Users as UsersIcon } from "lucide-react";
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -81,6 +81,10 @@ export default function App() {
     label: "Borrow & Return",
     icon: ArrowLeftRight
   }, {
+    id: "procurement",
+    label: "Procurement List",
+    icon: ClipboardList
+  }, {
     id: "users",
     label: "Users",
     icon: UsersIcon
@@ -88,10 +92,6 @@ export default function App() {
     id: "smartlab",
     label: "Smart Lab",
     icon: Lightbulb
-  }, {
-    id: "logs",
-    label: "Activity Logs",
-    icon: Activity
   }];
 
   const userNavigation = [{
@@ -110,13 +110,15 @@ export default function App() {
         return <Dashboard onNavigate={view => setCurrentView(view === "requests" ? "borrow-requests" : view)} />;
       case "borrowing":
         return <BorrowingManagement />;
-
+      case "borrow-requests":
+        return <BorrowRequests />;
+      case "procurement":
+        return <ProcurementList />;
       case "inventory":
+      case "components":
         return <Inventory />;
       case "smartlab":
         return <SmartLabControl />;
-      case "logs":
-        return <ActivityLogs />;
       case "users":
         return <Users />;
       case "profile":

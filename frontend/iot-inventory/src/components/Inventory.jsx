@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 import { Switch } from './ui/switch';
-import { Package, Search, Plus, Upload, Eye, EyeOff, Edit, Trash2, Filter, LayoutGrid, List, ExternalLink, X } from 'lucide-react';
+import { Package, Search, Plus, Upload, Eye, EyeOff, Edit, Trash2, Filter, LayoutGrid, List, ExternalLink, X, Download } from 'lucide-react';
 import { BulkComponentUpload } from './BulkComponentUpload';
 import { toast } from 'sonner';
 
@@ -104,12 +104,44 @@ export function Inventory() {
     return matchesSearch && matchesCategory && matchesTags && matchesStatus;
   });
 
+
+
   const totalItems = components.reduce((sum, c) => sum + c.quantity, 0);
   const lowStockCount = components.filter(c => getStockStatus(c) === 'low-stock').length;
   const outOfStockCount = components.filter(c => getStockStatus(c) === 'out-of-stock').length;
 
   const toggleTag = tag => {
     setSelectedTags(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]);
+  };
+
+  const handleExport = () => {
+    // Simple CSV export
+    const headers = ['Component Name', 'Category', 'Current Stock', 'Total Quantity', 'Threshold', 'Status'];
+    const rows = filteredComponents.map(item => [
+      item.name,
+      item.category,
+      item.available,
+      item.quantity,
+      item.threshold,
+      getStockStatus(item)
+    ]);
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    if (link.download !== undefined) {
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', 'inventory_list.csv');
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
   };
 
   const resetForm = () => {
@@ -298,6 +330,10 @@ export function Inventory() {
             <p className="text-gray-600">Monitor stock levels and component availability</p>
           </div>
           <div className="flex gap-2">
+            <Button onClick={handleExport} variant="outline" className="gap-2" disabled={filteredComponents.length === 0}>
+              <Download className="w-4 h-4" />
+              Export List
+            </Button>
             <Button onClick={() => setIsBulkUploadOpen(true)} variant="outline" className="gap-2">
               <Upload className="w-4 h-4" />
               Bulk Upload
@@ -311,7 +347,7 @@ export function Inventory() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      < div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8" >
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -367,10 +403,10 @@ export function Inventory() {
             </div>
           </CardContent>
         </Card>
-      </div>
+      </div >
 
       {/* Search and Filters */}
-      <div className="flex flex-col gap-4 mb-6">
+      < div className="flex flex-col gap-4 mb-6" >
         <div className="flex gap-4">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -407,33 +443,35 @@ export function Inventory() {
         </div>
 
         {/* Tag Filters */}
-        {allTags.length > 0 && (
-          <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-gray-600" />
-            <span className="text-sm text-gray-600">Filter by tags:</span>
-            <div className="flex flex-wrap gap-2">
-              {allTags.map(tag => (
-                <Badge
-                  key={tag}
-                  variant={selectedTags.includes(tag) ? "default" : "outline"}
-                  className="cursor-pointer"
-                  onClick={() => toggleTag(tag)}
-                >
-                  {tag}
-                </Badge>
-              ))}
+        {
+          allTags.length > 0 && (
+            <div className="flex items-center gap-2">
+              <Filter className="w-4 h-4 text-gray-600" />
+              <span className="text-sm text-gray-600">Filter by tags:</span>
+              <div className="flex flex-wrap gap-2">
+                {allTags.map(tag => (
+                  <Badge
+                    key={tag}
+                    variant={selectedTags.includes(tag) ? "default" : "outline"}
+                    className="cursor-pointer"
+                    onClick={() => toggleTag(tag)}
+                  >
+                    {tag}
+                  </Badge>
+                ))}
+              </div>
+              {selectedTags.length > 0 && (
+                <Button variant="ghost" size="sm" onClick={() => setSelectedTags([])}>
+                  Clear filters
+                </Button>
+              )}
             </div>
-            {selectedTags.length > 0 && (
-              <Button variant="ghost" size="sm" onClick={() => setSelectedTags([])}>
-                Clear filters
-              </Button>
-            )}
-          </div>
-        )}
-      </div>
+          )
+        }
+      </div >
 
       {/* View Toggle */}
-      <div className="flex items-center justify-between mb-4">
+      < div className="flex items-center justify-between mb-4" >
         <p className="text-gray-600">
           {filteredComponents.length} component{filteredComponents.length !== 1 ? 's' : ''} found
         </p>
@@ -460,250 +498,256 @@ export function Inventory() {
             </Button>
           </div>
         </div>
-      </div>
+      </div >
 
       {/* Empty State */}
-      {filteredComponents.length === 0 && (
-        <Card>
-          <CardContent className="p-12 text-center">
-            <Package className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              {components.length === 0 ? 'No Inventory Items' : 'No Items Found'}
-            </h3>
-            <p className="text-gray-500">
-              {components.length === 0
-                ? 'Add components to start tracking inventory'
-                : 'Try adjusting your search or filters'}
-            </p>
-          </CardContent>
-        </Card>
-      )}
+      {
+        filteredComponents.length === 0 && (
+          <Card>
+            <CardContent className="p-12 text-center">
+              <Package className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                {components.length === 0 ? 'No Inventory Items' : 'No Items Found'}
+              </h3>
+              <p className="text-gray-500">
+                {components.length === 0
+                  ? 'Add components to start tracking inventory'
+                  : 'Try adjusting your search or filters'}
+              </p>
+            </CardContent>
+          </Card>
+        )
+      }
 
       {/* Card View */}
-      {viewMode === 'cards' && filteredComponents.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredComponents.map(component => {
-            const status = getStockStatus(component);
-            const borrowed = component.quantity - component.available;
+      {
+        viewMode === 'cards' && filteredComponents.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredComponents.map(component => {
+              const status = getStockStatus(component);
+              const borrowed = component.quantity - component.available;
 
-            return (
-              <Card key={component._id} className="hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <div className="flex items-start justify-between mb-2">
-                    <CardTitle className="text-gray-900">{component.name}</CardTitle>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => toggleVisibility(component._id, component.visibleToUsers)}
-                      className="h-8 w-8 p-0"
-                    >
-                      {component.visibleToUsers ? (
-                        <Eye className="w-4 h-4 text-green-600" />
-                      ) : (
-                        <EyeOff className="w-4 h-4 text-gray-400" />
-                      )}
-                    </Button>
-                  </div>
-                  <Badge variant="secondary">{component.category}</Badge>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-700 mb-4 text-sm">{component.description || 'No description'}</p>
+              return (
+                <Card key={component._id} className="hover:shadow-lg transition-shadow">
+                  <CardHeader>
+                    <div className="flex items-start justify-between mb-2">
+                      <CardTitle className="text-gray-900">{component.name}</CardTitle>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => toggleVisibility(component._id, component.visibleToUsers)}
+                        className="h-8 w-8 p-0"
+                      >
+                        {component.visibleToUsers ? (
+                          <Eye className="w-4 h-4 text-green-600" />
+                        ) : (
+                          <EyeOff className="w-4 h-4 text-gray-400" />
+                        )}
+                      </Button>
+                    </div>
+                    <Badge variant="secondary">{component.category}</Badge>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-gray-700 mb-4 text-sm">{component.description || 'No description'}</p>
 
-                  <div className="space-y-2 mb-4">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Total Quantity:</span>
-                      <span className="font-medium text-gray-900">{component.quantity}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Available:</span>
-                      <span className={`font-medium ${status === 'out-of-stock' ? 'text-red-600' :
-                        status === 'low-stock' ? 'text-orange-600' :
-                          'text-green-600'
-                        }`}>
-                        {component.available}
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Borrowed:</span>
-                      <span className="font-medium text-gray-900">{borrowed}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Threshold:</span>
-                      <span className="font-medium text-gray-900">{component.threshold}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Condition:</span>
-                      <span className="font-medium text-gray-900">{component.condition}</span>
-                    </div>
-                  </div>
-
-                  <div className="mb-4">
-                    {status === 'out-of-stock' && (
-                      <Badge variant="destructive" className="w-full justify-center">Out of Stock</Badge>
-                    )}
-                    {status === 'low-stock' && (
-                      <Badge className="bg-orange-500 w-full justify-center">Low Stock</Badge>
-                    )}
-                    {status === 'in-stock' && (
-                      <Badge className="bg-green-500 w-full justify-center">In Stock</Badge>
-                    )}
-                  </div>
-
-                  {component.tags && component.tags.length > 0 && (
-                    <div className="mb-4">
-                      <p className="text-sm text-gray-600 mb-2">Tags:</p>
-                      <div className="flex flex-wrap gap-1">
-                        {component.tags.map(tag => (
-                          <Badge key={tag} variant="outline" className="text-xs">
-                            {tag}
-                          </Badge>
-                        ))}
+                    <div className="space-y-2 mb-4">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">Total Quantity:</span>
+                        <span className="font-medium text-gray-900">{component.quantity}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">Available:</span>
+                        <span className={`font-medium ${status === 'out-of-stock' ? 'text-red-600' :
+                          status === 'low-stock' ? 'text-orange-600' :
+                            'text-green-600'
+                          }`}>
+                          {component.available}
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">Borrowed:</span>
+                        <span className="font-medium text-gray-900">{borrowed}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">Threshold:</span>
+                        <span className="font-medium text-gray-900">{component.threshold}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">Condition:</span>
+                        <span className="font-medium text-gray-900">{component.condition}</span>
                       </div>
                     </div>
-                  )}
 
-                  <div className="flex gap-2 pt-4 border-t">
-                    {component.datasheet && (
+                    <div className="mb-4">
+                      {status === 'out-of-stock' && (
+                        <Badge variant="destructive" className="w-full justify-center">Out of Stock</Badge>
+                      )}
+                      {status === 'low-stock' && (
+                        <Badge className="bg-orange-500 w-full justify-center">Low Stock</Badge>
+                      )}
+                      {status === 'in-stock' && (
+                        <Badge className="bg-green-500 w-full justify-center">In Stock</Badge>
+                      )}
+                    </div>
+
+                    {component.tags && component.tags.length > 0 && (
+                      <div className="mb-4">
+                        <p className="text-sm text-gray-600 mb-2">Tags:</p>
+                        <div className="flex flex-wrap gap-1">
+                          {component.tags.map(tag => (
+                            <Badge key={tag} variant="outline" className="text-xs">
+                              {tag}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="flex gap-2 pt-4 border-t">
+                      {component.datasheet && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-1 gap-2"
+                          onClick={() => window.open(component.datasheet, '_blank')}
+                        >
+                          <ExternalLink className="w-3 h-3" />
+                          Datasheet
+                        </Button>
+                      )}
                       <Button
                         variant="outline"
                         size="sm"
-                        className="flex-1 gap-2"
-                        onClick={() => window.open(component.datasheet, '_blank')}
+                        onClick={() => openEditDialog(component)}
+                        className="flex-1 gap-1"
                       >
-                        <ExternalLink className="w-3 h-3" />
-                        Datasheet
+                        <Edit className="w-3 h-3" />
+                        Edit
                       </Button>
-                    )}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => openEditDialog(component)}
-                      className="flex-1 gap-1"
-                    >
-                      <Edit className="w-3 h-3" />
-                      Edit
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDeleteComponent(component._id, component.name)}
-                      className="gap-1 text-red-600 hover:text-red-700"
-                    >
-                      <Trash2 className="w-3 h-3" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-      )}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDeleteComponent(component._id, component.name)}
+                        className="gap-1 text-red-600 hover:text-red-700"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        )
+      }
 
       {/* List View (Table) */}
-      {viewMode === 'list' && filteredComponents.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Inventory Items</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Component Name</TableHead>
-                  <TableHead>Category</TableHead>
-                  <TableHead className="text-center">Total Qty</TableHead>
-                  <TableHead className="text-center">Available</TableHead>
-                  <TableHead className="text-center">Borrowed</TableHead>
-                  <TableHead className="text-center">Threshold</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-center">Visibility</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredComponents.map(component => {
-                  const status = getStockStatus(component);
-                  const borrowed = component.quantity - component.available;
+      {
+        viewMode === 'list' && filteredComponents.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Inventory Items</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Component Name</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead className="text-center">Total Qty</TableHead>
+                    <TableHead className="text-center">Available</TableHead>
+                    <TableHead className="text-center">Borrowed</TableHead>
+                    <TableHead className="text-center">Threshold</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-center">Visibility</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredComponents.map(component => {
+                    const status = getStockStatus(component);
+                    const borrowed = component.quantity - component.available;
 
-                  return (
-                    <TableRow key={component._id}>
-                      <TableCell className="font-medium">{component.name}</TableCell>
-                      <TableCell>
-                        <Badge variant="secondary">{component.category}</Badge>
-                      </TableCell>
-                      <TableCell className="text-center">{component.quantity}</TableCell>
-                      <TableCell className="text-center">
-                        <span className={
-                          status === 'out-of-stock' ? 'text-red-600' :
-                            status === 'low-stock' ? 'text-orange-600' :
-                              'text-green-600'
-                        }>
-                          {component.available}
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-center">{borrowed}</TableCell>
-                      <TableCell className="text-center">{component.threshold}</TableCell>
-                      <TableCell>
-                        {status === 'out-of-stock' && (
-                          <Badge variant="destructive">Out of Stock</Badge>
-                        )}
-                        {status === 'low-stock' && (
-                          <Badge className="bg-orange-500">Low Stock</Badge>
-                        )}
-                        {status === 'in-stock' && (
-                          <Badge className="bg-green-500">In Stock</Badge>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => toggleVisibility(component._id, component.visibleToUsers)}
-                          className="gap-2"
-                        >
-                          {component.visibleToUsers ? (
-                            <>
-                              <Eye className="w-4 h-4 text-green-600" />
-                              <span className="text-xs text-green-600">Visible</span>
-                            </>
-                          ) : (
-                            <>
-                              <EyeOff className="w-4 h-4 text-gray-400" />
-                              <span className="text-xs text-gray-400">Hidden</span>
-                            </>
+                    return (
+                      <TableRow key={component._id}>
+                        <TableCell className="font-medium">{component.name}</TableCell>
+                        <TableCell>
+                          <Badge variant="secondary">{component.category}</Badge>
+                        </TableCell>
+                        <TableCell className="text-center">{component.quantity}</TableCell>
+                        <TableCell className="text-center">
+                          <span className={
+                            status === 'out-of-stock' ? 'text-red-600' :
+                              status === 'low-stock' ? 'text-orange-600' :
+                                'text-green-600'
+                          }>
+                            {component.available}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-center">{borrowed}</TableCell>
+                        <TableCell className="text-center">{component.threshold}</TableCell>
+                        <TableCell>
+                          {status === 'out-of-stock' && (
+                            <Badge variant="destructive">Out of Stock</Badge>
                           )}
-                        </Button>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex gap-2 justify-end">
+                          {status === 'low-stock' && (
+                            <Badge className="bg-orange-500">Low Stock</Badge>
+                          )}
+                          {status === 'in-stock' && (
+                            <Badge className="bg-green-500">In Stock</Badge>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-center">
                           <Button
-                            variant="outline"
+                            variant="ghost"
                             size="sm"
-                            onClick={() => openEditDialog(component)}
-                            className="gap-1"
+                            onClick={() => toggleVisibility(component._id, component.visibleToUsers)}
+                            className="gap-2"
                           >
-                            <Edit className="w-3 h-3" />
-                            Edit
+                            {component.visibleToUsers ? (
+                              <>
+                                <Eye className="w-4 h-4 text-green-600" />
+                                <span className="text-xs text-green-600">Visible</span>
+                              </>
+                            ) : (
+                              <>
+                                <EyeOff className="w-4 h-4 text-gray-400" />
+                                <span className="text-xs text-gray-400">Hidden</span>
+                              </>
+                            )}
                           </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleDeleteComponent(component._id, component.name)}
-                            className="gap-1 text-red-600 hover:text-red-700"
-                          >
-                            <Trash2 className="w-3 h-3" />
-                            Delete
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-      )}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex gap-2 justify-end">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => openEditDialog(component)}
+                              className="gap-1"
+                            >
+                              <Edit className="w-3 h-3" />
+                              Edit
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDeleteComponent(component._id, component.name)}
+                              className="gap-1 text-red-600 hover:text-red-700"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                              Delete
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        )
+      }
 
       {/* Add/Edit Component Dialog */}
       <Dialog open={isAddDialogOpen || isEditDialogOpen} onOpenChange={(open) => {
@@ -733,49 +777,49 @@ export function Inventory() {
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="category">Category *</Label>
-              {formData.isCustomCategory ? (
-                <div className="flex gap-2">
-                  <Input
-                    id="category"
-                    value={formData.customCategory}
-                    onChange={e => setFormData({ ...formData, customCategory: e.target.value })}
-                    placeholder="Enter new category name"
-                    className="flex-1"
-                    autoFocus
-                  />
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setFormData({ ...formData, isCustomCategory: false, category: '', customCategory: '' })}
-                    title="Select existing category"
+                {formData.isCustomCategory ? (
+                  <div className="flex gap-2">
+                    <Input
+                      id="category"
+                      value={formData.customCategory}
+                      onChange={e => setFormData({ ...formData, customCategory: e.target.value })}
+                      placeholder="Enter new category name"
+                      className="flex-1"
+                      autoFocus
+                    />
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setFormData({ ...formData, isCustomCategory: false, category: '', customCategory: '' })}
+                      title="Select existing category"
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ) : (
+                  <Select
+                    value={formData.category}
+                    onValueChange={val => {
+                      if (val === 'new_custom') {
+                        setFormData({ ...formData, isCustomCategory: true, category: '', customCategory: '' });
+                      } else {
+                        setFormData({ ...formData, category: val, customCategory: '' });
+                      }
+                    }}
                   >
-                    <X className="w-4 h-4" />
-                  </Button>
-                </div>
-              ) : (
-                <Select
-                  value={formData.category}
-                  onValueChange={val => {
-                    if (val === 'new_custom') {
-                      setFormData({ ...formData, isCustomCategory: true, category: '', customCategory: '' });
-                    } else {
-                      setFormData({ ...formData, category: val, customCategory: '' });
-                    }
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select or add category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {existingCategories.map(cat => (
-                      <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                    ))}
-                    <SelectItem value="new_custom" className="text-blue-600 font-medium">
-                      + Add New Category
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              )}
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select or add category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {existingCategories.map(cat => (
+                        <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                      ))}
+                      <SelectItem value="new_custom" className="text-blue-600 font-medium">
+                        + Add New Category
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
             </div>
 
@@ -939,6 +983,6 @@ export function Inventory() {
         existingCategories={existingCategories}
         existingTags={allTags}
       />
-    </div>
+    </div >
   );
 }

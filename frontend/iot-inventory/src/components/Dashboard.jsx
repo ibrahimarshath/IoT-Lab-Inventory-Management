@@ -129,6 +129,10 @@ export function Dashboard({ onNavigate } = {}) {
     if (onNavigate) onNavigate('requests');
   };
 
+  const navigateToProcurement = () => {
+    if (onNavigate) onNavigate('procurement');
+  };
+
   const dashboardStats = [
     {
       title: 'Total Components',
@@ -155,7 +159,7 @@ export function Dashboard({ onNavigate } = {}) {
       icon: AlertTriangle,
       color: 'text-orange-600',
       bgColor: 'bg-orange-50',
-      onClick: scrollToLowStock
+      onClick: navigateToProcurement
     },
     {
       title: 'Active Borrowings',
@@ -281,6 +285,55 @@ export function Dashboard({ onNavigate } = {}) {
           </CardContent>
         </Card>
       </div>
+
+      {/* Low Stock Items Section */}
+      <Card id="low-stock-section" className="mb-8">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <AlertTriangle className="w-5 h-5 text-orange-500" />
+            Low Stock Items
+          </CardTitle>
+          <CardDescription>Components that have reached their minimum threshold</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {lowStockItems.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              <Package className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+              <p>No low stock items</p>
+              <p className="text-sm">All inventory levels are healthy!</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {lowStockItems.map((item, index) => (
+                <div key={index} className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
+                  <div>
+                    <p className="font-medium text-gray-900">{item.name}</p>
+                    <p className="text-sm text-gray-500">
+                      Category: {item.category}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-medium text-orange-600">
+                      {item.available} / {item.quantity}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      Threshold: {item.threshold}
+                    </p>
+                  </div>
+                </div>
+              ))}
+              <div className="pt-4 text-center">
+                <button
+                  onClick={() => onNavigate && onNavigate('procurement')}
+                  className="text-sm text-blue-600 hover:text-blue-700 font-medium hover:underline"
+                >
+                  View Full Procurement List →
+                </button>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
