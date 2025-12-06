@@ -6,6 +6,11 @@ const borrowRequestSchema = new mongoose.Schema({
         ref: 'User',
         required: true
     },
+    requestGroupId: {
+        type: String,
+        required: true,
+        index: true
+    },
     componentName: {
         type: String,
         required: true

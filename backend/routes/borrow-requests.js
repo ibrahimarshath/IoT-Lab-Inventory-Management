@@ -55,7 +55,7 @@ router.get('/', auth, async (req, res) => {
 // @access  Private (students and admins)
 router.post('/', auth, async (req, res) => {
     try {
-        const { componentId, quantity, expectedReturnDate, purpose } = req.body;
+        const { componentId, quantity, expectedReturnDate, purpose, requestGroupId } = req.body;
 
         // Find component
         const component = await Component.findById(componentId);
@@ -76,6 +76,7 @@ router.post('/', auth, async (req, res) => {
         // Create request
         const newRequest = new BorrowRequest({
             user: req.user.id,
+            requestGroupId: requestGroupId || `${Date.now()}-single`,
             componentName: component.name,
             componentId: component._id.toString(),
             quantity,
