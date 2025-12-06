@@ -53,7 +53,7 @@ export function Cart({
 
       const requests = cart.map(item => ({
         requestGroupId,
-        componentId: item.component.id,
+        componentId: item.component._id,
         quantity: item.quantity,
         expectedReturnDate: expectedReturn.toISOString(),
         purpose: purpose
