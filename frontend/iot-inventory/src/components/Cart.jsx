@@ -26,17 +26,17 @@ export function Cart({
       removeFromCart(componentId);
       return;
     }
-    const item = cart.find(item => item.component.id === componentId);
+    const item = cart.find(item => item.component._id === componentId);
     if (item && newQuantity > item.component.available) {
       return; // Don't allow more than available
     }
-    setCart(prev => prev.map(item => item.component.id === componentId ? {
+    setCart(prev => prev.map(item => item.component._id === componentId ? {
       ...item,
       quantity: newQuantity
     } : item));
   };
   const removeFromCart = componentId => {
-    setCart(prev => prev.filter(item => item.component.id !== componentId));
+    setCart(prev => prev.filter(item => item.component._id !== componentId));
   };
   const handleSubmitRequest = () => {
     if (cart.length === 0) return;
@@ -125,7 +125,7 @@ export function Cart({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {cart.map(item => <TableRow key={item.component.id}>
+                {cart.map(item => <TableRow key={item.component._id}>
                   <TableCell className="min-w-[250px]">
                     <div>
                       <p className="font-medium">{item.component.name}</p>
@@ -142,17 +142,17 @@ export function Cart({
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center justify-center gap-2">
-                      <Button variant="outline" size="sm" onClick={() => updateQuantity(item.component.id, item.quantity - 1)} disabled={item.quantity <= 1}>
+                      <Button variant="outline" size="sm" onClick={() => updateQuantity(item.component._id, item.quantity - 1)} disabled={item.quantity <= 1}>
                         <Minus className="w-3 h-3" />
                       </Button>
-                      <Input type="number" value={item.quantity} onChange={e => updateQuantity(item.component.id, parseInt(e.target.value) || 1)} className="w-16 text-center" min="1" max={item.component.available} />
-                      <Button variant="outline" size="sm" onClick={() => updateQuantity(item.component.id, item.quantity + 1)} disabled={item.quantity >= item.component.available}>
+                      <Input type="number" value={item.quantity} onChange={e => updateQuantity(item.component._id, parseInt(e.target.value) || 1)} className="w-16 text-center" min="1" max={item.component.available} />
+                      <Button variant="outline" size="sm" onClick={() => updateQuantity(item.component._id, item.quantity + 1)} disabled={item.quantity >= item.component.available}>
                         <Plus className="w-3 h-3" />
                       </Button>
                     </div>
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="sm" onClick={() => removeFromCart(item.component.id)}>
+                    <Button variant="ghost" size="sm" onClick={() => removeFromCart(item.component._id)}>
                       <Trash2 className="w-4 h-4 text-red-600" />
                     </Button>
                   </TableCell>

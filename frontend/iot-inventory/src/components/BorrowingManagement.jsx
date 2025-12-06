@@ -308,25 +308,6 @@ export function BorrowingManagement() {
     <div className="p-8">
       <div className="mb-8">
         <div className="flex items-center justify-between mb-6">
-          <div>
-            <h2 className="text-gray-900 mb-2">Borrow & Return Management</h2>
-            <p className="text-gray-600">Track all component borrowing activities</p>
-          </div>
-          <div className="flex gap-2">
-            <Button className="gap-2 relative bg-blue-600 hover:bg-blue-700 text-white overflow-visible" onClick={() => setShowBorrowRequests(true)}>
-              <Bell className="w-4 h-4" />
-              Requests
-              {pendingRequestsCount > 0 && (
-                <span className="absolute -top-3 -right-3 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white ring-2 ring-white shadow-md z-50">
-                  {pendingRequestsCount}
-                </span>
-              )}
-            </Button>
-            <Button className="gap-2" onClick={() => setIsAddDialogOpen(true)}>
-              <Plus className="w-4 h-4" />
-              New Borrowing
-            </Button>
-          </div>
           <Dialog open={isAddDialogOpen} onOpenChange={handleDialogChange}>
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
