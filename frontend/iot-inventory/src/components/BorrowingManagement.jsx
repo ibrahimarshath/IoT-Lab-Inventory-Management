@@ -304,10 +304,26 @@ export function BorrowingManagement() {
     </Table>
   );
 
+  const handleRequestProcessed = () => {
+    fetchBorrowings();
+    fetchComponents();
+    fetchPendingRequestsCount();
+  };
+
   return (
     <div className="p-8">
       <div className="mb-8">
         <div className="flex items-center justify-between mb-6">
+          <div>
+            <h2 className="text-gray-900 mb-2">Borrow & Return Management</h2>
+            <p className="text-gray-600">Track all component borrowing activities</p>
+          </div>
+          <div className="flex gap-2">
+            <Button className="gap-2" onClick={() => setIsAddDialogOpen(true)}>
+              <Plus className="w-4 h-4" />
+              New Borrowing
+            </Button>
+          </div>
           <Dialog open={isAddDialogOpen} onOpenChange={handleDialogChange}>
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
@@ -553,7 +569,10 @@ export function BorrowingManagement() {
       {/* Borrow Requests Dialog */}
       <Dialog open={showBorrowRequests} onOpenChange={setShowBorrowRequests}>
         <DialogContent className="sm:max-w-[95vw] w-[95vw] max-h-[90vh] flex flex-col p-0 bg-white gap-0 overflow-hidden">
-          <BorrowRequests adminUsername={sessionStorage.getItem('user') ? JSON.parse(sessionStorage.getItem('user')).name : 'Admin'} />
+          <BorrowRequests
+            adminUsername={sessionStorage.getItem('user') ? JSON.parse(sessionStorage.getItem('user')).name : 'Admin'}
+            onRequestProcessed={handleRequestProcessed}
+          />
         </DialogContent>
       </Dialog>
     </div>

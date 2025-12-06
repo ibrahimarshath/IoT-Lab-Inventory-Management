@@ -127,10 +127,12 @@ router.put('/:id/approve', auth, async (req, res) => {
             return res.status(400).json({ message: `Not enough stock. Available: ${component.available}` });
         }
 
+        let newBorrowing = null;
+
         // Only create borrowing if quantity > 0
         if (quantityToApprove > 0) {
             // Create Borrowing
-            const newBorrowing = new Borrowing({
+            newBorrowing = new Borrowing({
                 user: request.user._id,
                 componentName: request.componentName,
                 componentId: request.componentId,

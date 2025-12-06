@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { Clock, CheckCircle, XCircle, AlertCircle, Mail, Phone, ChevronDown, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 
-export function BorrowRequests() {
+export function BorrowRequests({ adminUsername, onRequestProcessed }) {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandedGroups, setExpandedGroups] = useState(new Set());
@@ -41,7 +41,6 @@ export function BorrowRequests() {
     }
   };
 
-  // Group requests by requestGroupId
   // Group requests by user + date + purpose (to combine requests submitted separately)
   const groupedRequests = requests.reduce((groups, request) => {
     // Create a unique key based on user, date, and purpose
@@ -66,7 +65,6 @@ export function BorrowRequests() {
 
   const groupedArray = Object.values(groupedRequests);
   const pendingGroups = groupedArray.filter(g => g.status === 'pending');
-  const processedGroups = groupedArray.filter(g => g.status !== 'pending');
 
   const toggleGroup = (groupId) => {
     const newExpanded = new Set(expandedGroups);
@@ -131,6 +129,11 @@ export function BorrowRequests() {
       setIsResponseDialogOpen(false);
       setEditedQuantities({});
       fetchRequests();
+
+      // Notify parent component to refresh data
+      if (onRequestProcessed) {
+        onRequestProcessed();
+      }
     } catch (error) {
       console.error(`Error ${responseAction}ing request:`, error);
       toast.error(error.message || `Failed to ${responseAction} request`);
@@ -162,15 +165,6 @@ export function BorrowRequests() {
                 <div>
                   <p className="text-sm text-gray-600">Pending</p>
                   <p className="text-2xl font-bold text-gray-900">{pendingGroups.length}</p>
-                </div>
-              </div>
-            </Card>
-            <Card className="px-4 py-2">
-              <div className="flex items-center gap-2">
-                <CheckCircle className="w-5 h-5 text-green-600" />
-                <div>
-                  <p className="text-sm text-gray-600">Processed</p>
-                  <p className="text-2xl font-bold text-gray-900">{processedGroups.length}</p>
                 </div>
               </div>
             </Card>
@@ -312,58 +306,6 @@ export function BorrowRequests() {
         </Card>
       )}
 
-      {/* Processed Requests */}
-      {processedGroups.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Processed Requests ({processedGroups.length})</CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-gray-50">
-                    <TableHead>Student</TableHead>
-                    <TableHead>Components</TableHead>
-                    <TableHead>Request Date</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Response</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {processedGroups.map(group => (
-                    <TableRow key={group.groupId}>
-                      <TableCell>
-                        <div>
-                          <p className="font-medium text-gray-900">{group.userName}</p>
-                          <p className="text-xs text-gray-600">{group.userEmail}</p>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="secondary">{group.components.length} items</Badge>
-                      </TableCell>
-                      <TableCell>{new Date(group.requestDate).toLocaleDateString()}</TableCell>
-                      <TableCell>
-                        {group.status === 'approved' ? (
-                          <Badge className="bg-green-500"><CheckCircle className="w-3 h-3 mr-1" />Approved</Badge>
-                        ) : (
-                          <Badge variant="destructive"><XCircle className="w-3 h-3 mr-1" />Rejected</Badge>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <p className="text-sm max-w-xs truncate">
-                          {group.components[0]?.adminResponse || 'No response'}
-                        </p>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
       {/* Empty State */}
       {requests.length === 0 && (
         <Card>
@@ -447,7 +389,8 @@ export function BorrowRequests() {
                   Cancel
                 </Button>
                 <Button
-                  className={responseAction === 'approve' ? 'bg-green-600 hover:bg-green-700' : ''}
+                  style={responseAction === 'approve' ? { backgroundColor: '#16a34a', color: 'white' } : {}}
+                  className={responseAction === 'approve' ? 'hover:bg-green-700' : ''}
                   variant={responseAction === 'reject' ? 'destructive' : 'default'}
                   onClick={handleSubmitResponse}
                 >
