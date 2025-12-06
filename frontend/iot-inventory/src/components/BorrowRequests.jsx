@@ -42,11 +42,14 @@ export function BorrowRequests() {
   };
 
   // Group requests by requestGroupId
+  // Group requests by user + date + purpose (to combine requests submitted separately)
   const groupedRequests = requests.reduce((groups, request) => {
-    const groupId = request.requestGroupId || request.id;
-    if (!groups[groupId]) {
-      groups[groupId] = {
-        groupId,
+    // Create a unique key based on user, date, and purpose
+    const groupKey = `${request.userEmail}-${new Date(request.requestDate).toDateString()}-${request.purpose}`;
+
+    if (!groups[groupKey]) {
+      groups[groupKey] = {
+        groupId: groupKey,
         userName: request.userName,
         userEmail: request.userEmail,
         userPhone: request.userPhone,
