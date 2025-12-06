@@ -539,7 +539,7 @@ export function BorrowingManagement() {
 
       {/* Borrow Requests Dialog */}
       <Dialog open={showBorrowRequests} onOpenChange={setShowBorrowRequests}>
-        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-[95vw] w-[95vw] max-h-[90vh] flex flex-col p-0 bg-white gap-0 overflow-hidden">
           <BorrowRequests adminUsername={sessionStorage.getItem('user') ? JSON.parse(sessionStorage.getItem('user')).name : 'Admin'} />
         </DialogContent>
       </Dialog>
