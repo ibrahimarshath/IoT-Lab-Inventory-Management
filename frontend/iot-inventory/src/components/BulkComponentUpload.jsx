@@ -3,7 +3,11 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { Plus, X, Check, Upload, Calendar as CalendarIcon, Trash2 } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
+import { Badge } from './ui/badge';
+import { Checkbox } from './ui/checkbox';
+import { Label } from './ui/label';
+import { Plus, X, Check, Upload, Calendar as CalendarIcon, Trash2, ChevronsUpDown } from 'lucide-react';
 import { toast } from 'sonner';
 
 export function BulkComponentUpload({ open, onOpenChange, onSuccess, existingCategories = [], existingTags = [] }) {
@@ -36,11 +40,10 @@ export function BulkComponentUpload({ open, onOpenChange, onSuccess, existingCat
             }
 
             if (field === 'tags') {
-                if (value === 'new_custom') {
-                    return { ...comp, tags: '', isCustomTag: true };
-                }
-                // If currently custom, stay custom. Otherwise (dropdown selection), turn off custom.
-                return { ...comp, tags: value, isCustomTag: comp.isCustomTag };
+                // This logic is now handled in toggleTag for standard tags
+                // This block might still be used if we keep the custom tag input, 
+                // but for multi-select we will primarily use toggleTag
+                return { ...comp, tags: value };
             }
 
             return { ...comp, [field]: value };
@@ -53,8 +56,36 @@ export function BulkComponentUpload({ open, onOpenChange, onSuccess, existingCat
             if (field === 'category') {
                 return { ...comp, isCustomCategory: isCustom, category: '' };
             }
-            if (field === 'tags') {
-                return { ...comp, isCustomTag: isCustom, tags: '' };
+            return comp;
+        }));
+    };
+
+    const toggleTag = (id, tag) => {
+        setComponents(components.map(comp => {
+            if (comp.id !== id) return comp;
+
+            const currentTags = comp.tags ? comp.tags.split(',').map(t => t.trim()).filter(Boolean) : [];
+            let newTags;
+
+            if (currentTags.includes(tag)) {
+                newTags = currentTags.filter(t => t !== tag);
+            } else {
+                newTags = [...currentTags, tag];
+            }
+
+            return { ...comp, tags: newTags.join(', ') };
+        }));
+    };
+
+    const addCustomTag = (id, tag) => {
+        if (!tag.trim()) return;
+        setComponents(components.map(comp => {
+            if (comp.id !== id) return comp;
+
+            const currentTags = comp.tags ? comp.tags.split(',').map(t => t.trim()).filter(Boolean) : [];
+            if (!currentTags.includes(tag.trim())) {
+                const newTags = [...currentTags, tag.trim()];
+                return { ...comp, tags: newTags.join(', ') };
             }
             return comp;
         }));
@@ -341,43 +372,83 @@ export function BulkComponentUpload({ open, onOpenChange, onSuccess, existingCat
                                         />
                                     </td>
                                     <td className="p-0 border border-gray-300 bg-white group-hover:bg-gray-50">
-                                        {comp.isCustomTag ? (
-                                            <div className="flex h-9 items-center w-full">
-                                                <Input
-                                                    value={comp.tags}
-                                                    onChange={(e) => handleCellChange(comp.id, 'tags', e.target.value)}
-                                                    placeholder="Comma separated tags"
-                                                    className="h-9 border-0 rounded-none shadow-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-blue-500 px-2 flex-1 bg-white text-black min-w-0"
-                                                    autoFocus
-                                                />
+                                        <Popover>
+                                            <PopoverTrigger asChild>
                                                 <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="h-9 w-9 shrink-0 rounded-none hover:bg-gray-100"
-                                                    onClick={() => toggleCustomField(comp.id, 'tags', false)}
-                                                    title="Back to list"
+                                                    variant="outline"
+                                                    role="combobox"
+                                                    className="h-9 w-full justify-between border-0 rounded-none shadow-none px-2 font-normal text-left"
                                                 >
-                                                    <X className="w-4 h-4" />
+                                                    <span className="truncate">
+                                                        {comp.tags ? (
+                                                            comp.tags.split(',').length === 1 ? comp.tags : `${comp.tags.split(',').length} tags selected`
+                                                        ) : "Select tags..."}
+                                                    </span>
+                                                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                                 </Button>
-                                            </div>
-                                        ) : (
-                                            <Select
-                                                value={comp.tags}
-                                                onValueChange={(value) => handleCellChange(comp.id, 'tags', value)}
-                                            >
-                                                <SelectTrigger className="h-9 border-0 rounded-none shadow-none focus:ring-1 focus:ring-inset focus:ring-blue-500 px-2">
-                                                    <SelectValue placeholder="Select tag" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {existingTags.map(tag => (
-                                                        <SelectItem key={tag} value={tag}>{tag}</SelectItem>
-                                                    ))}
-                                                    <SelectItem value="new_custom" className="text-blue-600 font-medium">
-                                                        + Add New Tag
-                                                    </SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                        )}
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-[200px] p-2 bg-white border shadow-lg" align="start">
+                                                <div className="space-y-2">
+                                                    <div className="flex gap-2 mb-2">
+                                                        <Input
+                                                            placeholder="New tag..."
+                                                            className="h-8 text-xs"
+                                                            onKeyDown={(e) => {
+                                                                if (e.key === 'Enter') {
+                                                                    e.preventDefault();
+                                                                    addCustomTag(comp.id, e.target.value);
+                                                                    e.target.value = '';
+                                                                }
+                                                            }}
+                                                        />
+                                                    </div>
+                                                    <div className="max-h-[200px] overflow-y-auto space-y-1">
+                                                        {existingTags.map(tag => {
+                                                            const isSelected = (comp.tags || '').split(',').map(t => t.trim()).includes(tag);
+                                                            return (
+                                                                <div key={tag} className="flex items-center space-x-2 rounded p-1 hover:bg-gray-100">
+                                                                    <Checkbox
+                                                                        id={`tag-${comp.id}-${tag}`}
+                                                                        checked={isSelected}
+                                                                        onCheckedChange={() => toggleTag(comp.id, tag)}
+                                                                    />
+                                                                    <Label
+                                                                        htmlFor={`tag-${comp.id}-${tag}`}
+                                                                        className="text-sm font-normal cursor-pointer flex-1"
+                                                                    >
+                                                                        {tag}
+                                                                    </Label>
+                                                                </div>
+                                                            );
+                                                        })}
+                                                        {existingTags.length === 0 && (
+                                                            <div className="text-xs text-center text-gray-500 py-2">No existing tags</div>
+                                                        )}
+                                                    </div>
+                                                    {comp.tags && (
+                                                        <div className="pt-2 border-t">
+                                                            <div className="flex flex-wrap gap-1">
+                                                                {comp.tags.split(',').map(t => t.trim()).filter(Boolean).map(tag => (
+                                                                    <Badge key={tag} variant="secondary" className="text-[10px] px-1 h-5">
+                                                                        {tag}
+                                                                        <button
+                                                                            type="button"
+                                                                            className="ml-1 hover:bg-red-100 rounded-full p-0.5 transition-colors focus:outline-none focus:ring-1 focus:ring-red-400"
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation();
+                                                                                toggleTag(comp.id, tag);
+                                                                            }}
+                                                                        >
+                                                                            <X className="w-2 h-2 text-gray-500 hover:text-red-500" />
+                                                                        </button>
+                                                                    </Badge>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </PopoverContent>
+                                        </Popover>
                                     </td>
                                     <td className="p-0 border border-gray-300 text-center sticky right-0 bg-white shadow-[-5px_0_10px_-5px_rgba(0,0,0,0.1)] group-hover:bg-gray-50 z-10">
                                         <Button

@@ -33,6 +33,7 @@ export function Inventory() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isBulkUploadOpen, setIsBulkUploadOpen] = useState(false);
   const [editingComponent, setEditingComponent] = useState(null);
+  const [customTagInput, setCustomTagInput] = useState('');
 
   // Form states
   const [formData, setFormData] = useState({
@@ -161,6 +162,7 @@ export function Inventory() {
       visibleToUsers: true
     });
     setEditingComponent(null);
+    setCustomTagInput('');
   };
 
   const handleAddComponent = async () => {
@@ -366,7 +368,7 @@ export function Inventory() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 mb-1">Component Types</p>
+                <p className="text-sm text-gray-600 mb-1">Categories</p>
                 <p className="text-3xl text-gray-900">{components.length}</p>
               </div>
               <div className="bg-green-50 text-green-600 p-3 rounded-lg">
@@ -895,49 +897,87 @@ export function Inventory() {
 
             <div className="grid gap-2">
               <Label htmlFor="tags">Tags</Label>
-              {formData.isCustomTag ? (
-                <div className="flex gap-2">
-                  <Input
-                    id="tags"
-                    value={formData.tags}
-                    onChange={e => setFormData({ ...formData, tags: e.target.value })}
-                    placeholder="IoT, robot, automation"
-                    className="flex-1"
-                    autoFocus
-                  />
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setFormData({ ...formData, isCustomTag: false, tags: '' })}
-                    title="Select existing tag"
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
-                </div>
-              ) : (
+              <div className="flex flex-wrap gap-2 min-h-[2.5rem] p-2 border rounded-md bg-white">
+                {formData.tags ? formData.tags.split(',').map(t => t.trim()).filter(Boolean).map(tag => (
+                  <Badge key={tag} variant="secondary" className="gap-1 pr-1">
+                    {tag}
+                    <button
+                      type="button"
+                      className="hover:bg-red-100 rounded-full p-0.5 transition-colors focus:outline-none focus:ring-2 focus:ring-red-400"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        // Get current tags, split, trim and filter
+                        const currentTags = formData.tags ? formData.tags.split(',').map(t => t.trim()).filter(Boolean) : [];
+                        // Filter out the tag to be removed
+                        const newTags = currentTags.filter(t => t !== tag).join(', ');
+                        setFormData({ ...formData, tags: newTags });
+                      }}
+                    >
+                      <X className="w-3 h-3 text-gray-500 hover:text-red-500" />
+                    </button>
+                  </Badge>
+                )) : (
+                  <span className="text-sm text-gray-400 p-1">No tags selected</span>
+                )}
+              </div>
+              <div className="flex gap-2">
                 <Select
-                  value={formData.tags}
-                  onValueChange={val => {
-                    if (val === 'new_custom') {
-                      setFormData({ ...formData, isCustomTag: true, tags: '' });
-                    } else {
-                      setFormData({ ...formData, tags: val });
+                  value=""
+                  onValueChange={(val) => {
+                    const currentTags = formData.tags ? formData.tags.split(',').map(t => t.trim()).filter(Boolean) : [];
+                    if (!currentTags.includes(val)) {
+                      const newTags = [...currentTags, val].join(', ');
+                      setFormData({ ...formData, tags: newTags });
                     }
                   }}
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select tag" />
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Add existing..." />
                   </SelectTrigger>
                   <SelectContent>
-                    {allTags.map(tag => (
+                    {allTags.filter(tag => !formData.tags?.includes(tag)).map(tag => (
                       <SelectItem key={tag} value={tag}>{tag}</SelectItem>
                     ))}
-                    <SelectItem value="new_custom" className="text-blue-600 font-medium">
-                      + Add New Tag
-                    </SelectItem>
+                    {allTags.filter(tag => !formData.tags?.includes(tag)).length === 0 && (
+                      <div className="p-2 text-sm text-gray-500">No more tags</div>
+                    )}
                   </SelectContent>
                 </Select>
-              )}
+                <div className="flex-1 flex gap-2">
+                  <Input
+                    placeholder="Type new tag..."
+                    value={customTagInput}
+                    onChange={(e) => setCustomTagInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        if (!customTagInput.trim()) return;
+                        const currentTags = formData.tags ? formData.tags.split(',').map(t => t.trim()).filter(Boolean) : [];
+                        if (!currentTags.includes(customTagInput.trim())) {
+                          const newTags = [...currentTags, customTagInput.trim()].join(', ');
+                          setFormData({ ...formData, tags: newTags });
+                        }
+                        setCustomTagInput('');
+                      }
+                    }}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      if (!customTagInput.trim()) return;
+                      const currentTags = formData.tags ? formData.tags.split(',').map(t => t.trim()).filter(Boolean) : [];
+                      if (!currentTags.includes(customTagInput.trim())) {
+                        const newTags = [...currentTags, customTagInput.trim()].join(', ');
+                        setFormData({ ...formData, tags: newTags });
+                      }
+                      setCustomTagInput('');
+                    }}
+                  >
+                    Add
+                  </Button>
+                </div>
+              </div>
             </div>
 
             <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
