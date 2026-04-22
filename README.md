@@ -80,24 +80,38 @@ Backend follows a RESTful structure and interacts with the frontend via JSON res
 
 ```
 project/
+├── .gitignore              # Excludes .env, node_modules, etc.
 ├── backend/
+│   ├── .env                # Local config (NOT in git)
+│   ├── .env.example        # Template for .env (in git)
+│   ├── node_modules/       # NOT in git (auto-installed)
+│   ├── package.json        # Dependencies list (in git)
+│   ├── package-lock.json   # Locked versions (in git)
 │   ├── models/
 │   ├── routes/
 │   ├── middleware/
 │   ├── utils/
-│   ├── server.js
-│   ├── package.json
-│   └── .env
+│   └── server.js
 │
 └── frontend/iot-inventory/
+    ├── .env                # Local config (NOT in git)
+    ├── .env.example        # Template for .env (in git)
+    ├── node_modules/       # NOT in git (auto-installed)
+    ├── package.json        # Dependencies list (in git)
+    ├── package-lock.json   # Locked versions (in git)
     ├── src/
     ├── index.html
     ├── vite.config.ts
-    ├── package.json
-    └── package-lock.json
+    └── public/
 ```
 
 ## Installation and Setup
+
+### What Gets Pushed to Git?
+*   ✅ `.env.example` - Template showing required environment variables
+*   ✅ `package.json` & `package-lock.json` - Dependencies list
+*   ❌ `.env` - **Never commit** (contains secrets like API keys)
+*   ❌ `node_modules/` - **Never commit** (automatically installed via `npm install`)
 
 ### Prerequisites
 *   Node.js
@@ -109,17 +123,21 @@ project/
     ```bash
     cd backend
     ```
-2.  Install dependencies:
+2.  Copy the environment template and configure it:
+    ```bash
+    cp .env.example .env
+    ```
+3.  Update `.env` with your MongoDB connection details:
+    ```env
+    MONGO_URI=mongodb+srv://username:password@cluster.mongodb.net/iot-inventory
+    PORT=5000
+    JWT_SECRET=your_secret_key_here
+    ```
+4.  Install dependencies:
     ```bash
     npm install
     ```
-3.  Create a `.env` file with the following variables:
-    ```env
-    MONGO_URI=your_database_uri
-    PORT=5000
-    JWT_SECRET=any_secret_key (if authentication is used)
-    ```
-4.  Start the server:
+5.  Start the server:
     ```bash
     npm start
     # or while developing:
@@ -131,11 +149,15 @@ project/
     ```bash
     cd frontend/iot-inventory
     ```
-2.  Install dependencies:
+2.  Copy the environment template:
+    ```bash
+    cp .env.example .env
+    ```
+3.  Install dependencies:
     ```bash
     npm install
     ```
-3.  Start the development server:
+4.  Start the development server:
     ```bash
     npm run dev
     ```

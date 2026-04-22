@@ -26,9 +26,3 @@ yarn-error.log*
 *.njsproj
 *.sln
 *.sw?
-
-# Backend
-backend/package-lock.json
-
-# Frontend
-frontend/iot-inventory/package-lock.json
